@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "what2wear-app",
-    "slug": "what2wear-app",
+    "name": "What2Wear-app",
+    "slug": "What2Wear-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
