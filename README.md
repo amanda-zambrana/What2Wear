@@ -22,3 +22,17 @@ Note: this structure will be extended as we develop more project components; thi
 ├── README.md           # This file, including setup spec. and breakdown
 └── __tests__           # Tests should go in this folder
 ```
+
+## Getting started
+
+1. Install dependencies
+
+   ```bash
+   npm install
+   ```
+
+2. Start the app
+
+   ```bash
+    npx expo start
+   ```
