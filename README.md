@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # What2Wear
 
 Welcome to What2Wear, your digital wardrobe and smart stylist! 
