@@ -1,14 +1,20 @@
-import { Text, View, StyleSheet, Button, TouchableOpacity} from 'react-native';
-import React, { useState } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { Modalize } from 'react-native-modalize';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function WardrobeScreen() {
   const [activeView, setActiveView] = useState('inventory');
+  const modalizeRef = useRef<Modalize>(null);
+
+  const onOpen = () => {
+    modalizeRef.current?.open();
+  };
 
   // Rendering the inventory view
   const renderInventoryView = () => (
     <View>
       <Text style={styles.text}>Inventory</Text>
-      {/* Later, add the clothes list component or logic here */}
     </View>
   );
 
@@ -16,7 +22,6 @@ export default function WardrobeScreen() {
   const renderOutfitsView = () => (
     <View>
       <Text style={styles.text}>Outfits</Text>
-      {/* Later, add the outfits list component or logic here */}
     </View>
   );
 
@@ -24,64 +29,96 @@ export default function WardrobeScreen() {
   const renderStyleBoardsView = () => (
     <View>
       <Text style={styles.text}>Style Boards</Text>
-      {/* Later, add the style boards list component or logic here */}
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        {/*later, link the username here via database*/}
-        <Text style={styles.headerText}>User Name</Text> 
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>User Name</Text>
+          <TouchableOpacity style={styles.menuButton} onPress={onOpen}>
+            <Text style={styles.menuText}>⋮</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Buttons to switch views */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              activeView === 'inventory' && styles.activeButton,
+            ]}
+            onPress={() => setActiveView('inventory')}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                activeView === 'inventory' && styles.activeButtonText,
+              ]}
+            >
+              Inventory
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              activeView === 'outfits' && styles.activeButton,
+            ]}
+            onPress={() => setActiveView('outfits')}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                activeView === 'outfits' && styles.activeButtonText,
+              ]}
+            >
+              Outfits
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              activeView === 'style boards' && styles.activeButton,
+            ]}
+            onPress={() => setActiveView('style boards')}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                activeView === 'style boards' && styles.activeButtonText,
+              ]}
+            >
+              Style Boards
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Conditionally render the view based on user selection */}
+        {activeView === 'inventory'
+          ? renderInventoryView()
+          : activeView === 'outfits'
+          ? renderOutfitsView()
+          : renderStyleBoardsView()}
+
+        {/* Modalize for bottom sheet menu */}
+        <Modalize ref={modalizeRef} snapPoint={300} modalHeight={400}>
+          <View style={styles.menuContent}>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>Share Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>Get Help</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
+        </Modalize>
       </View>
-
-      {/* Buttons to switch views */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            activeView === 'inventory' && styles.activeButton,
-          ]}
-          onPress={() => setActiveView('inventory')}
-        >
-          <Text style={[
-            styles.buttonText,
-            activeView === 'inventory' && styles.activeButtonText,
-          ]}>Inventory</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            activeView === 'outfits' && styles.activeButton,
-          ]}
-          onPress={() => setActiveView('outfits')}
-        >
-          <Text style={[
-            styles.buttonText,
-            activeView === 'outfits' && styles.activeButtonText,
-          ]}>Outfits</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            activeView === 'style boards' && styles.activeButton,
-          ]}
-          onPress={() => setActiveView('style boards')}
-        >
-          <Text style={[
-            styles.buttonText,
-            activeView === 'style boards' && styles.activeButtonText,
-          ]}>Style Boards</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Conditionally render the view based on user selection */}
-      {activeView === 'inventory' ? (renderInventoryView()) : 
-        activeView === 'outfits' ? (renderOutfitsView()) : 
-        (renderStyleBoardsView())}
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -103,7 +140,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingBottom: 10,
-    marginBottom: 20, // Pushing the next container items down from the header
+    marginBottom: 20,
+    position: 'relative', // Allows positioning the menu button
   },
   headerText: {
     color: '#000',
@@ -130,5 +168,26 @@ const styles = StyleSheet.create({
   },
   activeButtonText: {
     color: '#fff', // White text for the active button
+  },
+  menuButton: {
+    position: 'absolute',
+    right: 20, // Position the menu on the right
+    top: 60, // Adjust based on header height
+  },
+  menuText: {
+    fontSize: 40,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  menuContent: {
+    padding: 20,
+  },
+  menuItem: {
+    paddingVertical: 15,
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 1,
+  },
+  menuItemText: {
+    fontSize: 18,
   },
 });
