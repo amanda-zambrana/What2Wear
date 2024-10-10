@@ -32,7 +32,7 @@ export default function WardrobeScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         {/*later, link the username here via database*/}
-        <Text style={styles.headerText}>John Doe</Text> 
+        <Text style={styles.headerText}>User Name</Text> 
       </View>
 
       {/* Buttons to switch views */}
