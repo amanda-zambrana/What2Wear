@@ -83,57 +83,51 @@ export default function WardrobeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Buttons to switch views */}
-        <View style={styles.buttonContainer}>
+        {/* Tabs to switch views */}
+        <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[
-              styles.button,
-              activeView === 'inventory' && styles.activeButton,
-            ]}
+            style={styles.tab}
             onPress={() => setActiveView('inventory')}
           >
             <Text
               style={[
-                styles.buttonText,
-                activeView === 'inventory' && styles.activeButtonText,
+                styles.tabText,
+                activeView === 'inventory' && styles.activeTabText,
               ]}
             >
               Inventory
             </Text>
+            {activeView === 'inventory' && <View style={styles.activeTabUnderline} />}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.button,
-              activeView === 'outfits' && styles.activeButton,
-            ]}
+            style={styles.tab}
             onPress={() => setActiveView('outfits')}
           >
             <Text
               style={[
-                styles.buttonText,
-                activeView === 'outfits' && styles.activeButtonText,
+                styles.tabText,
+                activeView === 'outfits' && styles.activeTabText,
               ]}
             >
               Outfits
             </Text>
+            {activeView === 'outfits' && <View style={styles.activeTabUnderline} />}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.button,
-              activeView === 'style boards' && styles.activeButton,
-            ]}
+            style={styles.tab}
             onPress={() => setActiveView('style boards')}
           >
             <Text
               style={[
-                styles.buttonText,
-                activeView === 'style boards' && styles.activeButtonText,
+                styles.tabText,
+                activeView === 'style boards' && styles.activeTabText,
               ]}
             >
               Style Boards
             </Text>
+            {activeView === 'style boards' && <View style={styles.activeTabUnderline} />}
           </TouchableOpacity>
         </View>
 
@@ -311,6 +305,30 @@ const styles = StyleSheet.create({
   activeButtonText: {
     color: '#fff',
   },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  tab: {
+    paddingVertical: 10,
+  },
+  tabText: {
+    color: '#888', // Default text color
+    fontSize: 16,
+  },
+  activeTabText: {
+    color: '#3dc8ff', // Active text color
+    fontWeight: 'bold',
+  },
+  activeTabUnderline: {
+    marginTop: 5,
+    height: 2,
+    backgroundColor: '#3dc8ff', // Teal underline for active tab
+  },
   menuContent: {
     padding: 20,
   },
@@ -351,3 +369,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
