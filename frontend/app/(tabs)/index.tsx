@@ -2,11 +2,11 @@ import React, { useRef } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useRouter } from 'expo-router'; // Import useRouter for navigation
+import { useRouter } from 'expo-router';
 
 export default function Index() {
   const modalizeRef = useRef<Modalize>(null);
-  const router = useRouter(); // Initialize the router
+  const router = useRouter(); 
 
   const onOpen = () => {
     modalizeRef.current?.open();
@@ -26,7 +26,7 @@ export default function Index() {
           </TouchableOpacity>
         </View>
 
-        {/* Button to Navigate to Signup */}
+        {/* Button to Navigate to Signup IMP: THIS IS TEMPORARY will change once login and auth works only for debugging purposes!!!!!! */}
         <TouchableOpacity style={styles.signupButton} onPress={navigateToSignup}>
           <Text style={styles.signupButtonText}>Go to Sign Up</Text>
         </TouchableOpacity>
