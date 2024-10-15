@@ -1,6 +1,14 @@
 {
   "dependencies": {
+    "@expo/metro-config": "^0.18.11",
+    "@types/react": "~18.2.79",
+    "expo": "^51.0.37",
+    "metro": "^0.80.12",
     "react-native-pager-view": "^6.4.1",
-    "react-native-tab-view": "^3.5.2"
+    "react-native-tab-view": "^3.5.2",
+    "typescript": "~5.3.3",
+    "react-native-web": "~0.19.10",
+    "react-dom": "18.2.0",
+    "@expo/metro-runtime": "~3.2.3"
   }
 }

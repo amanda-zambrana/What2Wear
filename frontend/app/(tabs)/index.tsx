@@ -1,17 +1,22 @@
 import React, { useRef } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Modalize } from 'react-native-modalize';
-import { GestureHandlerRootView } from 'react-native-gesture-handler'; // Import GestureHandlerRootView
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useRouter } from 'expo-router'; // Import useRouter for navigation
 
 export default function Index() {
   const modalizeRef = useRef<Modalize>(null);
+  const router = useRouter(); // Initialize the router
 
   const onOpen = () => {
     modalizeRef.current?.open();
   };
 
+  const navigateToSignup = () => {
+    router.push('/auth/signup'); // Navigate to the signup screen
+  };
+
   return (
-    // Wrap your entire app or the root component with GestureHandlerRootView
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
         <View style={styles.header}>
@@ -20,6 +25,11 @@ export default function Index() {
             <Text style={styles.menuText}>⋮</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Button to Navigate to Signup */}
+        <TouchableOpacity style={styles.signupButton} onPress={navigateToSignup}>
+          <Text style={styles.signupButtonText}>Go to Sign Up</Text>
+        </TouchableOpacity>
 
         <Modalize
           ref={modalizeRef}
@@ -73,6 +83,18 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 40,
     color: '#000',
+    fontWeight: 'bold',
+  },
+  signupButton: {
+    backgroundColor: '#378fe6',
+    paddingVertical: 15,
+    paddingHorizontal: 50,
+    borderRadius: 10,
+    marginVertical: 20,
+  },
+  signupButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
     fontWeight: 'bold',
   },
   menuContent: {
