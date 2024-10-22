@@ -12,17 +12,26 @@ import {
   KeyboardEvent, // Need this as event is giving an error
   TouchableWithoutFeedback, // to dismiss keyboard when user taps anywhere else on screen
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Alert,
+  ActivityIndicator
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useNavigation } from 'expo-router';
+
+import {auth} from './firebaseconfig'; 
+
+import {createUserWithEmailAndPassword} from 'firebase/auth' ;
 
 const SignUpPage: React.FC = () => { 
+
   const [username, setUsername] = useState(''); //hpld userna,e
   const [email, setEmail] = useState(''); //hold password
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState(''); //confirm password
   const [showPassword, setShowPassword] = useState(false); //toggle password visibility
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false); 
+  const navigation = useNavigation();
 
   // const shiftValue = useRef(new Animated.Value(0)).current; //to assign an animated value for keyboard showing up 
 
@@ -53,11 +62,63 @@ const SignUpPage: React.FC = () => {
   //   }).start();
   // };
 
-  const handleSignUp = () => { //currently dummy values that does not do anything need to add some form of authentication to check if it works
-    console.log('Signing up with:', { username, email, password, confirmPassword });
+  const validateForm = () => {
+    if(!email||!password|| !confirmPassword)
+    {
+      Alert.alert("All fields are required");
+    }
+
+  if (password.length<6)
+  {
+    Alert.alert("Password must be at least 6 characters long:");
+    return false;
+  }
+
+
+  if (password!==confirmPassword)
+  {
+    Alert.alert("Passwords do not match.");
+    return false;
+  }
+  return true;
+};
+  const handleSignUp =async () : Promise<void> => {        
+    
+    
+    //currently dummy values that does not do anything need to add some form of authentication to check if it works
+    //console.log('Signing up with:', { username, email, password, confirmPassword });
+
+
+    if (!validateForm())
+    {
+      return;
+    }
+
+
+  try{ 
+    setLoading(true);
+    const usercred = await createUserWithEmailAndPassword (auth, email, password)
+    const user = usercred.user;
+    console.log('User created: ', user);
+    Alert.alert("Wohooo!","Account created!");
+    navigation.goBack();
+
+  }
+  catch (error:any) 
+    {
+      console.error("Error encountered during sign-up ",error);
+        Alert.alert("Error",error.message);
+    }
+    finally{
+      setLoading(false);
+    }
+
+
   };
+
+  
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView                 
       behavior={Platform.OS === "ios" ? "padding" : "height"} // For iOS, use 'padding', for Android, use 'height'
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Offset to ensure content moves correctly
       style={{ flex: 1 }}
@@ -132,8 +193,17 @@ const SignUpPage: React.FC = () => {
             </View>
 
             {/* Sign up button can be changed */}
-            <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-              <Text style={styles.buttonText}>Sign up</Text>
+
+            <TouchableOpacity
+              style={styles.signUpButton}
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text style={styles.buttonText}>Sign up</Text>
+              )}
             </TouchableOpacity>
 
             {/* DOn't know if we need this or not  */}

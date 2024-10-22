@@ -3,9 +3,9 @@ import { Stack } from "expo-router";
 const Authlayout = () => {
     return(
         <Stack>
-            <Stack.Screen name="signup" options={{ headerShown:false}} /> 
-            <Stack.Screen name= "signin" options= {{headerShown:false}} />
-            <Stack.Screen name="+not-found" />
+            <Stack.Screen name="SigninforWhat2Wear" options={{ headerShown:false}} /> 
+            <Stack.Screen name= "SignupforWhat2Wear" options= {{headerShown:false}} />
+            {/* <Stack.Screen name="+not-found" /> */}
 
         </Stack>
     );

@@ -11,15 +11,26 @@ import {
   Keyboard, 
   Platform,  //to give info about which platform user is using either IOS or andorid
   KeyboardEvent,  //need this as event does not work without this IMP
-  TouchableWithoutFeedback 
+  TouchableWithoutFeedback,
+  ActivityIndicator,
+  Alert 
 } from 'react-native';
 import LottieView from 'lottie-react-native';  // Import LottieView package for animation
-import { Link } from 'expo-router';
+import { Link, useNavigation, useRouter } from 'expo-router';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from './firebaseconfig';
+import { Tabs } from 'expo-router';
+
+
+
+
 const LoginPage = () => { //right now login page does nothing need to add some authentication to check working
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
+  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
+const router = useRouter();
   const shiftValue = useRef(new Animated.Value(0)).current; //creates an initial reference for an animated value that we will use to animate the keyboard for our device
 
   useEffect(() => {
@@ -48,8 +59,54 @@ const LoginPage = () => { //right now login page does nothing need to add some a
     }).start();
   };
 
-  const handleLogin = () => {  //IMP for handling login logic. THis will interface with the backend currently oinly has console.log
-    console.log('Logging in with:', email, password);
+  const handleLogin = async (): Promise<void> => {  //IMP for handling login logic. THis will interface with the backend currently oinly has console.log
+    //console.log('Logging in with:', email, password);
+
+    if (!email || !password)
+    {
+      Alert.alert('Please enter both email and password ');
+      return ;
+    }
+    setLoading(true);
+    try{
+      const usercred=await signInWithEmailAndPassword(auth,email,password);
+      const user = usercred.user;
+      Alert.alert( "Success", "Logged In Successfully")
+      console.log("User logged in",user);
+
+      router.push('/(tabs)');
+    }
+    catch (error:any)
+    {
+      let errorMessage= error.message;
+
+      switch(error.code)
+      {
+        case 'auth/wrong-password':
+          errorMessage = 'Incorrect password. Please try again.';
+          break;
+        
+          case 'auth/user-not-found':
+            errorMessage = 'No user found with this email. Please try again.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'The email address is not valid. Please check the format.';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = 'Too many failed attempts. Please try again later.';
+            break;
+          default:
+            errorMessage = 'An unknown error occurred. Please try again later.';
+    
+      }
+
+      Alert.alert('Error', errorMessage)
+    }
+    finally
+    {
+      setLoading(false)
+    }
+
   };
 
   return (
@@ -112,8 +169,12 @@ const LoginPage = () => { //right now login page does nothing need to add some a
           </View>
 
           {/* Login Button right now its empty but will update once values are set and we can login to the main screen */}
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Log In</Text>
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <Text style={styles.buttonText}>Log In</Text>
+            )}
           </TouchableOpacity>
 
           {/* Using this to navigate to other areas of app. Can go to signup page from new to what2wear  */}

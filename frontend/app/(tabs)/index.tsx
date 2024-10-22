@@ -1,19 +1,43 @@
-import React, { useRef } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
+import { signOut } from 'firebase/auth'; 
+import { auth } from '../auth/firebaseconfig';
 
 export default function Index() {
   const modalizeRef = useRef<Modalize>(null);
   const router = useRouter(); 
+  const [Loading,setLoading] = useState(false);
 
   const onOpen = () => {
     modalizeRef.current?.open();
   };
 
   const navigateToSignup = () => {
-    router.push('/auth/signup'); // Navigate to the signup screen
+    router.push('../auth/SigninforWhat2Wear'); // Navigate to the signup screen
+  };
+
+
+  const handleLogout = async (): Promise<void> => {
+    setLoading(true);
+    
+
+    try{ 
+
+      await signOut(auth);
+      router.push('../auth/SigninforWhat2Wear');
+
+    }
+    catch(error)
+    {
+      console.error('Encounterd unexpected error. Please try again');
+    }
+    finally 
+    {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,11 +67,25 @@ export default function Index() {
             <TouchableOpacity style={styles.menuItem}>
               <Text style={styles.menuItemText}>Get Help</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
               <Text style={styles.menuItemText}>Log Out</Text>
             </TouchableOpacity>
           </View>
         </Modalize>
+
+
+
+        {/* Loading Overlay */}
+        {Loading && (
+          <Modal transparent={true} animationType="fade" visible={Loading}>
+            <View style={styles.LoadingOverlay}>
+              <ActivityIndicator size="large" color="#ffffff" />
+              <Text style={styles.LoadingText}>Logging out...</Text>
+            </View>
+          </Modal>
+        )}
+
+
       </View>
     </GestureHandlerRootView>
   );
@@ -106,6 +144,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   menuItemText: {
+    fontSize: 18,
+  },
+
+  LoadingOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+  },
+  LoadingText: {
+    color: '#ffffff',
+    marginTop: 20,
     fontSize: 18,
   },
 });
