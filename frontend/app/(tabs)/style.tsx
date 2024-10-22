@@ -6,22 +6,75 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 export default function StyleScreen() {
   const [activeView, setActiveView] = useState('outfit shuffle');
   const modalizeRef = useRef<Modalize>(null);
+  const actionSheetRef = useRef<Modalize>(null); // Ref for the floating button menu
 
   const onOpen = () => {
     modalizeRef.current?.open();
   };
 
+  const onFloatingButtonPress = () => {
+    actionSheetRef.current?.open(); // Open the floating button modal
+  };
+
   // Rendering the outfit shuffle view
   const renderOutfitShuffleView = () => (
     <View>
-      <Text style={styles.text}>Outfit Shuffle Details Here</Text>
+
+      {/* Floating Button 1 - Apply Filters , change onFloatingButtonPress to another function when add functionality*/}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: 140, top: -10}]}
+        onPress={onFloatingButtonPress} 
+    >
+        <Text style={styles.floatingButtonText}>☰</Text>
+    </TouchableOpacity>
+
+      {/* Floating Button 2 - Shuffle, , change onFloatingButtonPress to another function when add functionality*/}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: 80, top: -10}]}
+        onPress={onFloatingButtonPress}
+    >
+        <Text style={styles.floatingButtonText}>⇄</Text>
+    </TouchableOpacity>
+
+      {/* Floating Button 3 - Save Outfit, change onFloatingButtonPress to another function when add functionality */}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: -190, top: -10}]}
+        onPress={onFloatingButtonPress}
+    >
+        <Text style={styles.floatingButtonText}>→</Text>
+    </TouchableOpacity>
+
     </View>
   );
 
   // Rendering the smart shuffle view
   const renderSmartShuffleView = () => (
     <View>
-      <Text style={styles.text}>Smart Shuffle Details Here</Text>
+
+      {/* Floating Button 1 - Apply Filters , change onFloatingButtonPress to another function when add functionality*/}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: 140, top: -10}]}
+        onPress={onFloatingButtonPress} 
+    >
+        <Text style={styles.floatingButtonText}>☰</Text>
+    </TouchableOpacity>
+
+      {/* Floating Button 2 - Smart Shuffle, , change onFloatingButtonPress to another function when add functionality*/}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: 80, top: -10}]}
+        onPress={onFloatingButtonPress}
+    >
+        <Text style={styles.floatingButtonText}>⇄</Text>
+    </TouchableOpacity>
+
+      {/* Floating Button 3 - Save Outfit, change onFloatingButtonPress to another function when add functionality */}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: -190, top: -10}]}
+        onPress={onFloatingButtonPress}
+    >
+        <Text style={styles.floatingButtonText}>→</Text>
+    </TouchableOpacity>
+
     </View>
   );
 
@@ -164,5 +217,21 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 18,
+  },
+  floatingButton: {
+    position: 'absolute',
+    width: 50,
+    height: 50,
+    borderRadius: 30,
+    backgroundColor: '#3dc8ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: -80,
+    top: -10,
+  },
+  floatingButtonText: {
+    color: '#fff',
+    fontSize: 30,
+    fontWeight: 'bold',
   },
 });

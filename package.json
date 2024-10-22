@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "react-native-floating-action": "^1.22.0",
+    "react-native-ionicons": "^4.6.5",
     "react-native-pager-view": "^6.4.1",
     "react-native-tab-view": "^3.5.2"
   }
