@@ -6,22 +6,75 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 export default function StyleScreen() {
   const [activeView, setActiveView] = useState('outfit shuffle');
   const modalizeRef = useRef<Modalize>(null);
+  const actionSheetRef = useRef<Modalize>(null); // Ref for the floating button menu
 
   const onOpen = () => {
     modalizeRef.current?.open();
   };
 
+  const onFloatingButtonPress = () => {
+    actionSheetRef.current?.open(); // Open the floating button modal
+  };
+
   // Rendering the outfit shuffle view
   const renderOutfitShuffleView = () => (
     <View>
-      <Text style={styles.text}>Outfit Shuffle Details Here</Text>
+
+      {/* Floating Button 1 - Apply Filters , change onFloatingButtonPress to another function when add functionality*/}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: 140, top: -10}]}
+        onPress={onFloatingButtonPress} 
+    >
+        <Text style={styles.floatingButtonText}>☰</Text>
+    </TouchableOpacity>
+
+      {/* Floating Button 2 - Shuffle, , change onFloatingButtonPress to another function when add functionality*/}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: 80, top: -10}]}
+        onPress={onFloatingButtonPress}
+    >
+        <Text style={styles.floatingButtonText}>⇄</Text>
+    </TouchableOpacity>
+
+      {/* Floating Button 3 - Save Outfit, change onFloatingButtonPress to another function when add functionality */}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: -190, top: -10}]}
+        onPress={onFloatingButtonPress}
+    >
+        <Text style={styles.floatingButtonText}>→</Text>
+    </TouchableOpacity>
+
     </View>
   );
 
   // Rendering the smart shuffle view
   const renderSmartShuffleView = () => (
     <View>
-      <Text style={styles.text}>Smart Shuffle Details Here</Text>
+
+      {/* Floating Button 1 - Apply Filters , change onFloatingButtonPress to another function when add functionality*/}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: 140, top: -10}]}
+        onPress={onFloatingButtonPress} 
+    >
+        <Text style={styles.floatingButtonText}>☰</Text>
+    </TouchableOpacity>
+
+      {/* Floating Button 2 - Smart Shuffle, , change onFloatingButtonPress to another function when add functionality*/}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: 80, top: -10}]}
+        onPress={onFloatingButtonPress}
+    >
+        <Text style={styles.floatingButtonText}>⇄</Text>
+    </TouchableOpacity>
+
+      {/* Floating Button 3 - Save Outfit, change onFloatingButtonPress to another function when add functionality */}
+      <TouchableOpacity
+        style={[styles.floatingButton, { right: -190, top: -10}]}
+        onPress={onFloatingButtonPress}
+    >
+        <Text style={styles.floatingButtonText}>→</Text>
+    </TouchableOpacity>
+
     </View>
   );
 
@@ -35,40 +88,36 @@ export default function StyleScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Buttons to switch views */}
-        <View style={styles.buttonContainer}>
+        {/* Tabs to switch views */}
+        <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[
-              styles.button,
-              activeView === 'outfit shuffle' && styles.activeButton,
-            ]}
+            style={styles.tab}
             onPress={() => setActiveView('outfit shuffle')}
           >
             <Text
               style={[
-                styles.buttonText,
-                activeView === 'outfit shuffle' && styles.activeButtonText,
+                styles.tabText,
+                activeView === 'outfit shuffle' && styles.activeTabText,
               ]}
             >
               Outfit Shuffle
             </Text>
+            {activeView === 'outfit shuffle' && <View style={styles.activeTabUnderline} />}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.button,
-              activeView === 'smart shuffle' && styles.activeButton,
-            ]}
+            style={styles.tab}
             onPress={() => setActiveView('smart shuffle')}
           >
             <Text
               style={[
-                styles.buttonText,
-                activeView === 'smart shuffle' && styles.activeButtonText,
+                styles.tabText,
+                activeView === 'smart shuffle' && styles.activeTabText,
               ]}
             >
               Smart Shuffle
             </Text>
+            {activeView === 'smart shuffle' && <View style={styles.activeTabUnderline} />}
           </TouchableOpacity>
         </View>
 
@@ -128,26 +177,29 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
   },
-  buttonContainer: {
+  tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
     marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
-  button: {
-    backgroundColor: '#ccc',
-    padding: 10,
-    borderRadius: 5,
+  tab: {
+    paddingVertical: 10,
   },
-  buttonText: {
-    color: '#000',
+  tabText: {
+    color: '#888', // Default text color
     fontSize: 16,
   },
-  activeButton: {
-    backgroundColor: '#3dc8ff', // Teal color for the active button
+  activeTabText: {
+    color: '#3dc8ff', // Active text color
+    fontWeight: 'bold',
   },
-  activeButtonText: {
-    color: '#fff', // White text for the active button
+  activeTabUnderline: {
+    marginTop: 5,
+    height: 2,
+    backgroundColor: '#3dc8ff', // Teal underline for active tab
   },
   text: {
     color: '#000',
@@ -165,5 +217,21 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 18,
+  },
+  floatingButton: {
+    position: 'absolute',
+    width: 50,
+    height: 50,
+    borderRadius: 30,
+    backgroundColor: '#3dc8ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: -80,
+    top: -10,
+  },
+  floatingButtonText: {
+    color: '#fff',
+    fontSize: 30,
+    fontWeight: 'bold',
   },
 });
