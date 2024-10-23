@@ -1,7 +1,17 @@
 import React, { useRef } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Modalize } from 'react-native-modalize';
-import { GestureHandlerRootView } from 'react-native-gesture-handler'; // Import GestureHandlerRootView
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useNavigation, Stack } from 'expo-router'; // Import useNavigation from expo-router
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+// Defining the type for the navigation prop based on  routes
+type RootStackParamList = {
+  index: undefined;
+  style: undefined; 
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'index'>;
 
 export default function Index() {
   const modalizeRef = useRef<Modalize>(null);
@@ -10,8 +20,15 @@ export default function Index() {
     modalizeRef.current?.open();
   };
 
+  // Create a navigation reference for buttons to navigate to diff tabs 
+  const navigation = useNavigation<NavigationProp>(); // Use the defined navigation prop type
+
+  // Function to handle navigation to the "Style" tab to create a new outfit 
+  const handleCreateNewOutfit = () => {
+    navigation.navigate('style'); 
+  };
+
   return (
-    // Wrap your entire app or the root component with GestureHandlerRootView
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
         <View style={styles.header}>
@@ -21,6 +38,22 @@ export default function Index() {
           </TouchableOpacity>
         </View>
 
+        {/* Centered Section */}
+        <View style={styles.centeredSection}>
+          <Text style={styles.planText}>Plan your outfit for today:</Text>
+          
+          <TouchableOpacity style={styles.actionButton} onPress={handleCreateNewOutfit}>
+            <Text style={styles.actionButtonText}>Create a New Outfit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <Text style={styles.actionButtonText}>Choose from Outfits</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <Text style={styles.actionButtonText}>Choose from Style Boards</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Modalize Component */}
         <Modalize
           ref={modalizeRef}
           snapPoint={300} // halfway up the screen
@@ -73,6 +106,32 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 40,
     color: '#000',
+    fontWeight: 'bold',
+  },
+  centeredSection: {
+    position: 'absolute',
+    bottom: '10%', 
+    alignItems: 'center',
+    width: '100%',
+  },
+  planText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#000',
+  },
+  actionButton: {
+    backgroundColor: '#3dc8ff',
+    borderRadius: 25,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    marginVertical: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    fontSize: 16,
+    color: '#fff',
     fontWeight: 'bold',
   },
   menuContent: {
