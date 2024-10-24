@@ -1,7 +1,12 @@
-import React, { useRef } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+import { useRouter } from 'expo-router';
+import { signOut } from 'firebase/auth'; 
+import { auth } from '../auth/firebaseconfig';
+
 import { useNavigation, Stack } from 'expo-router'; // Import useNavigation from expo-router
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -15,9 +20,33 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'index'>;
 
 export default function Index() {
   const modalizeRef = useRef<Modalize>(null);
+  const router = useRouter(); 
+  const [Loading,setLoading] = useState(false);
 
   const onOpen = () => {
     modalizeRef.current?.open();
+  };
+
+  const navigateToSignup = () => {
+    router.push('../auth/SigninforWhat2Wear'); // Navigate to the signup screen
+  };
+
+  const handleLogout = async (): Promise<void> => {
+    setLoading(true);
+  
+    try{ 
+      await signOut(auth);
+      router.push('../auth/SigninforWhat2Wear');
+
+    }
+    catch(error)
+    {
+      console.error('Encounterd unexpected error. Please try again');
+    }
+    finally 
+    {
+      setLoading(false);
+    }
   };
 
   // Create a navigation reference for buttons to navigate to diff tabs 
@@ -26,6 +55,7 @@ export default function Index() {
   // Function to handle navigation to the "Style" tab to create a new outfit 
   const handleCreateNewOutfit = () => {
     navigation.navigate('style'); 
+
   };
 
   return (
@@ -37,6 +67,11 @@ export default function Index() {
             <Text style={styles.menuText}>⋮</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Button to Navigate to Signup IMP: THIS IS TEMPORARY will change once login and auth works only for debugging purposes!!!!!! */}
+        <TouchableOpacity style={styles.signupButton} onPress={navigateToSignup}>
+          <Text style={styles.signupButtonText}>Go to Sign Up</Text>
+        </TouchableOpacity>
 
         {/* Centered Section */}
         <View style={styles.centeredSection}>
@@ -66,11 +101,22 @@ export default function Index() {
             <TouchableOpacity style={styles.menuItem}>
               <Text style={styles.menuItemText}>Get Help</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
               <Text style={styles.menuItemText}>Log Out</Text>
             </TouchableOpacity>
           </View>
         </Modalize>
+
+        {/* Loading Overlay */}
+        {Loading && (
+          <Modal transparent={true} animationType="fade" visible={Loading}>
+            <View style={styles.LoadingOverlay}>
+              <ActivityIndicator size="large" color="#ffffff" />
+              <Text style={styles.LoadingText}>Logging out...</Text>
+            </View>
+          </Modal>
+        )}
+
       </View>
     </GestureHandlerRootView>
   );
@@ -108,6 +154,18 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
   },
+
+  signupButton: {
+    backgroundColor: '#378fe6',
+    paddingVertical: 15,
+    paddingHorizontal: 50,
+    borderRadius: 10,
+    marginVertical: 20,
+  },
+  signupButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+  },
   centeredSection: {
     position: 'absolute',
     bottom: '10%', 
@@ -143,6 +201,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   menuItemText: {
+    fontSize: 18,
+  },
+  LoadingOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+  },
+  LoadingText: {
+    color: '#ffffff',
+    marginTop: 20,
     fontSize: 18,
   },
 });
