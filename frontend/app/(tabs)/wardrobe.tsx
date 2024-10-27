@@ -1,16 +1,27 @@
-import { Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView } from 'react-native';
 import React, { useState, useRef } from 'react';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 export default function WardrobeScreen() {
   const [activeView, setActiveView] = useState('inventory');
   const modalizeRef = useRef<Modalize>(null); // Ref for the bottom sheet menu
   const actionSheetRef = useRef<Modalize>(null); // Ref for the floating button menu
   const profileRef = useRef<Modalize>(null); // Ref for the profile modal
+  const newItemRef = useRef<Modalize>(null); // Ref for the New Item modal
 
   const [profileImage, setProfileImage] = useState<string | null>(null); // Store user's profile image
+  const [newItemImage, setNewItemImage] = useState<string | null>(null); // Store new item image
+  const [itemDetails, setItemDetails] = useState<string>(''); // Store details about the new item
+
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [typeOpen, setTypeOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [colorOpen, setColorOpen] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   const onOpen = () => {
     modalizeRef.current?.open();
@@ -38,6 +49,22 @@ export default function WardrobeScreen() {
     }
   };
 
+  // Function to add a new item
+  const addNewItem = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setNewItemImage(result.assets[0].uri); // Set new item image
+      console.log("New item image URL:", result.assets[0].uri); // Log the image URL
+      newItemRef.current?.open(); // Open the new item modal
+    }
+  };
+
   // Rendering the inventory view
   const renderInventoryView = () => (
     <View>
@@ -61,70 +88,54 @@ export default function WardrobeScreen() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
+        <View style={styles.container}>
         <View style={styles.header}>
-          {/* Profile Image */}
-          <TouchableOpacity onPress={onProfilePress} style={styles.profileImageContainer}>
-            {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
-            ) : (
-              <View style={styles.placeholderImage}>
-                <Text style={styles.placeholderText}>U</Text>
-              </View>
-            )}
+          
+                {/* Profile Image */}
+                <TouchableOpacity onPress={onProfilePress} style={styles.profileImageContainer}>
+                    {profileImage ? (
+                        <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                    ) : (
+                    <View style={styles.placeholderImage}>
+                        <Text style={styles.placeholderText}>U</Text>
+                    </View>
+                    )}
           </TouchableOpacity>
 
           {/* User Name */}
           <Text style={styles.headerText}>User Name</Text>
 
+        
           {/* Menu Button */}
           <TouchableOpacity style={styles.menuButton} onPress={onOpen}>
             <Text style={styles.menuText}>⋮</Text>
           </TouchableOpacity>
         </View>
 
+
+
+
         {/* Tabs to switch views */}
         <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={styles.tab}
-            onPress={() => setActiveView('inventory')}
-          >
+          <TouchableOpacity style={styles.tab} onPress={() => setActiveView('inventory')}>
             <Text
-              style={[
-                styles.tabText,
-                activeView === 'inventory' && styles.activeTabText,
-              ]}
-            >
+              style={[ styles.tabText, activeView === 'inventory' && styles.activeTabText]}>
               Inventory
             </Text>
             {activeView === 'inventory' && <View style={styles.activeTabUnderline} />}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.tab}
-            onPress={() => setActiveView('outfits')}
-          >
+          <TouchableOpacity style={styles.tab} onPress={() => setActiveView('outfits')}>
             <Text
-              style={[
-                styles.tabText,
-                activeView === 'outfits' && styles.activeTabText,
-              ]}
-            >
+              style={[ styles.tabText, activeView === 'outfits' && styles.activeTabText ]}>
               Outfits
             </Text>
             {activeView === 'outfits' && <View style={styles.activeTabUnderline} />}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.tab}
-            onPress={() => setActiveView('style boards')}
-          >
+          <TouchableOpacity style={styles.tab} onPress={() => setActiveView('style boards')} >
             <Text
-              style={[
-                styles.tabText,
-                activeView === 'style boards' && styles.activeTabText,
-              ]}
-            >
+              style={[ styles.tabText, activeView === 'style boards' && styles.activeTabText ]}>
               Style Boards
             </Text>
             {activeView === 'style boards' && <View style={styles.activeTabUnderline} />}
@@ -154,10 +165,7 @@ export default function WardrobeScreen() {
         </Modalize>
 
         {/* Floating button */}
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={onFloatingButtonPress}
-        >
+        <TouchableOpacity style={styles.floatingButton} onPress={onFloatingButtonPress}>
           <Text style={styles.floatingButtonText}>+</Text>
         </TouchableOpacity>
 
@@ -169,7 +177,7 @@ export default function WardrobeScreen() {
           overlayStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         >
           <View style={styles.menuContent}>
-            <TouchableOpacity style={styles.menuOptionButton}>
+            <TouchableOpacity style={styles.menuOptionButton} onPress={addNewItem}>
               <Text style={styles.menuOptionText}>Add a New Item</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuOptionButton}>
@@ -202,7 +210,114 @@ export default function WardrobeScreen() {
             <Text style={styles.profileLabel}>Username: user123</Text>
           </View>
         </Modalize>
-      </View>
+
+        {/* Modal for Add a New Item */}
+        <Modalize
+          ref={newItemRef}
+          adjustToContentHeight
+          handlePosition="inside"
+          overlayStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        >
+          <View style={styles.scrollViewContent}>
+            {newItemImage && (
+              <Image
+                source={{ uri: newItemImage }}
+                style={styles.newItemImage}
+              />
+            )}
+
+            <TextInput
+              style={styles.newItemInput}
+              value={itemDetails}
+              onChangeText={setItemDetails}
+              placeholder="Enter a name for this item..."
+              placeholderTextColor={'#898989'}
+            />
+
+            {/* Category Dropdown */}
+            <DropDownPicker
+                open={categoryOpen}
+                setOpen={setCategoryOpen}
+                items={[
+                  { label: 'Outerwear', value: 'outerwear' },
+                  { label: 'Tops', value: 'tops' },
+                  { label: 'Bottoms', value: 'bottoms' },
+                  { label: 'Footwear', value: 'footwear' },
+                  { label: 'Accessories', value: 'accessories' },
+                ]}
+                value={selectedCategory}
+                setValue={setSelectedCategory}
+                placeholder="Select a category"
+                containerStyle={{ marginBottom: 15 }} // Adjust the spacing to prevent overlapping
+                zIndex={3000} // Ensure correct stacking order
+                zIndexInverse={1000}
+              />
+
+            {/* Type Dropdown */}
+            <DropDownPicker
+                open={typeOpen}
+                setOpen={setTypeOpen}
+                items={[
+                  { label: 'Tee Shirt', value: 'teeshirt' },
+                  { label: 'Tank Top', value: 'tanktop' },
+                  { label: 'Shorts', value: 'shorts' },
+                  { label: 'Pants', value: 'pants' },
+                  { label: 'Sneakers', value: 'sneakers' },
+                  { label: 'Sandals', value: 'sandals' },
+                  { label: 'Boots', value: 'boots' },
+                  { label: 'Hats', value: 'hats' },
+                  { label: 'Headbands', value: 'headbands' },
+                  { label: 'Jackets', value: 'jackets' },
+                  { label: 'Sweaters', value: 'sweaters' },
+
+                ]}
+                value={selectedType}
+                setValue={setSelectedType}
+                placeholder="Select a type"
+                containerStyle={{ marginBottom: 15 }} // Adjust the spacing to prevent overlapping
+                zIndex={2000} // Ensure correct stacking order
+                zIndexInverse={2000}
+              />
+
+            {/* Color Dropdown */}
+            <DropDownPicker
+                open={colorOpen}
+                setOpen={setColorOpen}
+                items={[
+                  { label: 'Black', value: 'black' },
+                  { label: 'White', value: 'white' },
+                  { label: 'Gray', value: 'gray' },
+                  { label: 'Red', value: 'red' },
+                  { label: 'Orange', value: 'orange' },
+                  { label: 'Yellow', value: 'yellow' },
+                  { label: 'Green', value: 'green' },
+                  { label: 'Blue', value: 'blue' },
+                  { label: 'Purple', value: 'purple' },
+                  { label: 'Pink', value: 'pink' },
+                  { label: 'Brown', value: 'brown' },
+                ]}
+                value={selectedColor}
+                setValue={setSelectedColor}
+                placeholder="Select a color"
+                containerStyle={{ marginBottom: 15 }} // Adjust the spacing to prevent overlapping
+                zIndex={1000} // Ensure correct stacking order
+                zIndexInverse={3000}
+              />
+
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={() => {
+                // Logic to save the new item goes here
+                console.log("Item saved:", itemDetails);
+                newItemRef.current?.close(); // Close the new item modal after saving
+              }}
+            >
+              <Text style={styles.saveButtonText}>Add to Wardrobe</Text>
+            </TouchableOpacity>
+
+            </View>
+            </Modalize>
+        </View>
     </GestureHandlerRootView>
   );
 }
@@ -211,6 +326,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
@@ -368,5 +488,83 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
+  newItemContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    padding: 20,
+  },
+  newItemImage: {
+    width: '100%',
+    height: 300,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  itemDetailsInput: {
+    width: '100%',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+  },
+  newItemContent: {
+    flex: 1,
+    padding: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff', // White background for the modal
+  },
+  newItemLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333', // Dark color for the label
+  },
+  newItemInput: {
+    width: '100%',
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+  saveButton: {
+    backgroundColor: '#4CAF50', // Green background for the button
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#ffffff', // White text color for the button
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  dropdownContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    width: '100%',
+  },
+  picker: {
+    height: 40,
+    width: 150,
+    marginLeft: 10,
+  },
+  labelDropdownContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 10,
+  },
+  scrollViewContent: {
+    padding: 45,
+    alignItems: 'center',
+    flexGrow: 1,
+  },
 });
-

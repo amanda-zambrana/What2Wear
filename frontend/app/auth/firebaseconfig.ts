@@ -3,6 +3,8 @@ import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 
+import { getStorage } from "firebase/storage";
+
 // Your Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCG97wgoirEbXPB1s7GgQ9A0C9XBwQCd80",
@@ -33,4 +35,7 @@ isSupported().then((supported) => {
 const auth: Auth = getAuth(app);
 const db: Firestore = getFirestore(app);
 
-export { auth, db, analytics };
+const storage = getStorage(app);
+
+
+export { auth, db, analytics, storage };
