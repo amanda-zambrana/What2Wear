@@ -5,6 +5,35 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
 
+import { useNavigation, Stack } from 'expo-router'; // Import useNavigation from expo-router
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+// Defining the type for the navigation prop based on  routes
+type RootStackParamList = {
+  index: undefined;
+  style: undefined; 
+};
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'index'>;
+
+// Define the props type
+interface SearchBarProps {
+    value: string; // Type for the value prop
+    onChange: (text: string) => void; // Type for the onChange prop
+    placeholder: string; // Type for the placeholder prop
+  }
+
+  const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, placeholder }) => {
+    return (
+      <TextInput
+        style={styles.searchBar}
+        value={value}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor="#898989"
+      />
+    );
+  };
+
 export default function WardrobeScreen() {
   const [activeView, setActiveView] = useState('inventory');
   const modalizeRef = useRef<Modalize>(null); // Ref for the bottom sheet menu
@@ -23,6 +52,11 @@ export default function WardrobeScreen() {
   const [colorOpen, setColorOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
+// State variables for search bars
+const [searchInventory, setSearchInventory] = useState('');
+const [searchOutfits, setSearchOutfits] = useState('');
+const [searchStyleBoards, setSearchStyleBoards] = useState('');
+    
   const onOpen = () => {
     modalizeRef.current?.open();
   };
@@ -65,26 +99,62 @@ export default function WardrobeScreen() {
     }
   };
 
+  const buttonNames = [
+    'All',
+    'Outerwear',
+    'Tops',
+    'Bottoms ',
+    'Footwear ',
+    'Accessories '
+];
+
   // Rendering the inventory view
   const renderInventoryView = () => (
     <View>
-      <Text style={styles.text}>Inventory</Text>
+        <View style={styles.circularButtonContainer}>
+            {buttonNames.map((buttonName, index) => (
+                <TouchableOpacity key={index} style={styles.circularButton}>
+                    <Text style={styles.buttonLabel}>{buttonName}</Text>
+                </TouchableOpacity>
+            ))}
+        </View>
+        <SearchBar
+            value={searchInventory}
+            onChange={setSearchInventory}
+            placeholder="Search your inventory..."
+        />
     </View>
-  );
+);
 
   // Rendering the outfits view
   const renderOutfitsView = () => (
     <View>
-      <Text style={styles.text}>Outfits</Text>
+        <SearchBar
+            value={searchOutfits}
+            onChange={setSearchOutfits}
+            placeholder="Search your outfits..."
+        />
     </View>
   );
 
   // Rendering the style boards view
   const renderStyleBoardsView = () => (
     <View>
-      <Text style={styles.text}>Style Boards</Text>
+        <SearchBar
+        value={searchStyleBoards}
+        onChange={setSearchStyleBoards}
+        placeholder="Search your style boards..."
+        />
     </View>
   );
+
+  // Create a navigation reference for buttons to navigate to diff tabs 
+  const navigation = useNavigation<NavigationProp>(); // Use the defined navigation prop type
+
+  // Function to handle navigation to the "Style" tab to create a new outfit 
+  const handleCreateNewOutfit = () => {
+    navigation.navigate('style'); 
+  };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -111,9 +181,6 @@ export default function WardrobeScreen() {
             <Text style={styles.menuText}>⋮</Text>
           </TouchableOpacity>
         </View>
-
-
-
 
         {/* Tabs to switch views */}
         <View style={styles.tabContainer}>
@@ -180,7 +247,7 @@ export default function WardrobeScreen() {
             <TouchableOpacity style={styles.menuOptionButton} onPress={addNewItem}>
               <Text style={styles.menuOptionText}>Add a New Item</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuOptionButton}>
+            <TouchableOpacity style={styles.menuOptionButton} onPress={handleCreateNewOutfit}>
               <Text style={styles.menuOptionText}>Create a New Outfit</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuOptionButton}>
@@ -567,4 +634,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexGrow: 1,
   },
+  circularButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  circularButton: {
+    width: 62, // Width of each button
+    height: 62, // Height of each button
+    borderRadius: 30, // To make the button circular
+    backgroundColor: '#ffffff',
+    borderColor: '#3dc8ff', 
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 2,
+  },
+  buttonLabel: {
+    color: '#3dc8ff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  searchBar: {
+    alignSelf: 'center',
+    height: 50,
+    width: 350,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingLeft: 50,
+    paddingHorizontal: 5,
+    marginVertical: 0,
+    backgroundColor: '#fff',
+  },
+  submitButton: {
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 20,
+    width: '100%',
+  },
+  submitButtonText: {
+    color: '#fff',
+    textAlign: 'center',
+  },
+  
 });

@@ -64,7 +64,7 @@ export default function StyleScreen() {
         style={[styles.floatingButton, { right: 80, top: -10}]}
         onPress={onFloatingButtonPress}
     >
-        <Text style={styles.floatingButtonText}>⇄</Text>
+        <Text style={styles.floatingButtonText}>↻</Text>
     </TouchableOpacity>
 
       {/* Floating Button 3 - Save Outfit, change onFloatingButtonPress to another function when add functionality */}

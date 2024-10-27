@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -13,6 +13,26 @@ type RootStackParamList = {
   
   type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'index'>;
   
+// Create the CurrentDateDisplay Component
+const CurrentDateDisplay = () => {
+  const [currentDate, setCurrentDate] = useState('');
+
+  useEffect(() => {
+    const date = new Date();
+    const formattedDate = date.toLocaleDateString('en-US', {
+      weekday: 'long', // Full name of the day
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    setCurrentDate(formattedDate);
+  }, []);
+
+  return (
+    <Text style={styles.dateText}>{currentDate}</Text>
+  );
+};
+
 export default function Index() {
   const modalizeRef = useRef<Modalize>(null);
 
@@ -37,6 +57,9 @@ export default function Index() {
             <Text style={styles.menuText}>⋮</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Add the CurrentDateDisplay Component Below the Header */}
+        <CurrentDateDisplay />
 
         {/* Centered Section */}
         <View style={styles.centeredSection}>
@@ -144,5 +167,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     fontWeight: 'bold',
+  },
+  dateText: {
+    fontSize: 18,
+    fontWeight: '500',
+    marginTop: 10,
+    color: '#333',
   },
 });
