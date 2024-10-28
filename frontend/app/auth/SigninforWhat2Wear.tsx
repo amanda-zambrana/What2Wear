@@ -20,8 +20,8 @@ import { Link, useNavigation, useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebaseconfig';
 import { Tabs } from 'expo-router';
-
-
+import { appSignIn } from '@/globalUserStorage';
+import { useAuthUser } from '@/globalUserStorage';
 
 
 const LoginPage = () => { //right now login page does nothing need to add some authentication to check working
@@ -69,23 +69,24 @@ const router = useRouter();
     }
     setLoading(true);
     try{
-      const usercred=await signInWithEmailAndPassword(auth,email,password);
-      const user = usercred.user;
-      Alert.alert( "Success", "Logged In Successfully")
-      console.log("User logged in",user);
+      //const usercred=await signInWithEmailAndPassword(auth,email,password);
+      //const user = usercred.user;
+      //Alert.alert( "Success", "Logged In Successfully")
+      //console.log("User logged in",user);
 
-      router.push('/(tabs)');
-    }
-    catch (error:any)
-    {
-      let errorMessage= error.message;
+      //router.push('/(tabs)');
 
-      switch(error.code)
-      {
-        case 'auth/wrong-password':
-          errorMessage = 'Incorrect password. Please try again.';
-          break;
-        
+
+
+      const result = await appSignIn(email, password);
+      if (result.error) {
+        // Cast result.error as any to allow TypeScript to recognize the 'code' property
+        const error = result.error as { code: string; message?: string };
+        let errorMessage;
+        switch (error.code) {
+          case 'auth/wrong-password':
+            errorMessage = 'Incorrect password. Please try again.';
+            break;
           case 'auth/user-not-found':
             errorMessage = 'No user found with this email. Please try again.';
             break;
@@ -97,12 +98,48 @@ const router = useRouter();
             break;
           default:
             errorMessage = 'An unknown error occurred. Please try again later.';
-    
-      }
-
-      Alert.alert('Error', errorMessage)
+        }
+        Alert.alert("Error",errorMessage);
     }
-    finally
+    else 
+    {
+      Alert.alert("Success", "Logged In Successfully");
+      console.log("User logged in", result.user); // Confirm session persistence
+      router.push('/(tabs)');
+    }
+  }
+    catch (error:any)
+    {
+      // let errorMessage= error.message;
+
+      // switch(error.code)
+      // {
+      //   case 'auth/wrong-password':
+      //     errorMessage = 'Incorrect password. Please try again.';
+      //     break;
+        
+      //     case 'auth/user-not-found':
+      //       errorMessage = 'No user found with this email. Please try again.';
+      //       break;
+      //     case 'auth/invalid-email':
+      //       errorMessage = 'The email address is not valid. Please check the format.';
+      //       break;
+      //     case 'auth/too-many-requests':
+      //       errorMessage = 'Too many failed attempts. Please try again later.';
+      //       break;
+      //     default:
+      //       errorMessage = 'An unknown error occurred. Please try again later.';
+    
+      console.error("Login error:", error);
+      Alert.alert("Error", "An unexpected error occurred.");
+
+
+      
+
+      //Alert.alert('Error', errorMessage)
+    }
+  
+      finally
     {
       setLoading(false)
     }

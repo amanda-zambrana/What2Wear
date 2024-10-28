@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, Alert } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -9,6 +9,11 @@ import { auth } from '../auth/firebaseconfig';
 
 import { useNavigation, Stack } from 'expo-router'; // Import useNavigation from expo-router
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { appSignOut } from '@/globalUserStorage';
+import { AuthStore } from '@/globalUserStorage';
+import { useAuthUser } from '@/globalUserStorage';
+
+
 
 // Defining the type for the navigation prop based on  routes
 type RootStackParamList = {
@@ -22,6 +27,9 @@ export default function Index() {
   const modalizeRef = useRef<Modalize>(null);
   const router = useRouter(); 
   const [Loading,setLoading] = useState(false);
+  //const userDisplayName = AuthStore.useState((state) => state.userDisplayName);
+  const user = useAuthUser();
+  const userDisplayName = user?.displayName || 'User';
 
   const onOpen = () => {
     modalizeRef.current?.open();
@@ -35,13 +43,21 @@ export default function Index() {
     setLoading(true);
   
     try{ 
-      await signOut(auth);
-      router.push('../auth/SigninforWhat2Wear');
-
+     // await signOut(auth);
+     // router.push('../auth/SigninforWhat2Wear');
+     const result = await appSignOut();
+     if (result.error) {
+      throw result.error; // Handle error if logout fails
     }
+      Alert.alert("Success", "Logged Out Successfully");
+    router.push('../auth/SigninforWhat2Wear');
+
+  }
     catch(error)
     {
       console.error('Encounterd unexpected error. Please try again');
+      Alert.alert("Error", "An unexpected error occurred during logout.");
+
     }
     finally 
     {
@@ -62,16 +78,16 @@ export default function Index() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>Hey, User!</Text>
+          <Text style={styles.headerText}>Hey, {userDisplayName}!</Text>
           <TouchableOpacity style={styles.menuButton} onPress={onOpen}>
             <Text style={styles.menuText}>⋮</Text>
           </TouchableOpacity>
         </View>
 
         {/* Button to Navigate to Signup IMP: THIS IS TEMPORARY will change once login and auth works only for debugging purposes!!!!!! */}
-        <TouchableOpacity style={styles.signupButton} onPress={navigateToSignup}>
+        {/* <TouchableOpacity style={styles.signupButton} onPress={navigateToSignup}>
           <Text style={styles.signupButtonText}>Go to Sign Up</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Centered Section */}
         <View style={styles.centeredSection}>

@@ -21,7 +21,8 @@ import { Link, useNavigation } from 'expo-router';
 import {auth} from './firebaseconfig'; 
 
 import {createUserWithEmailAndPassword} from 'firebase/auth' ;
-
+import { appSignUp } from '@/globalUserStorage';
+import { useAuthUser } from '@/globalUserStorage';
 const SignUpPage: React.FC = () => { 
 
   const [username, setUsername] = useState(''); //hpld userna,e
@@ -33,6 +34,7 @@ const SignUpPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false); 
   const navigation = useNavigation();
 
+  
   // const shiftValue = useRef(new Animated.Value(0)).current; //to assign an animated value for keyboard showing up 
 
   // useEffect(() => {
@@ -89,33 +91,29 @@ const SignUpPage: React.FC = () => {
     //console.log('Signing up with:', { username, email, password, confirmPassword });
 
 
-    if (!validateForm())
-    {
-      return;
-    }
+    if (!validateForm()) return;
 
-
-  try{ 
     setLoading(true);
-    const usercred = await createUserWithEmailAndPassword (auth, email, password)
-    const user = usercred.user;
-    console.log('User created: ', user);
-    Alert.alert("Wohooo!","Account created!");
-    navigation.goBack();
-
-  }
-  catch (error:any) 
-    {
-      console.error("Error encountered during sign-up ",error);
-        Alert.alert("Error",error.message);
-    }
-    finally{
+    
+    try { 
+      const result = await appSignUp(email, password, username);
+      
+      // Check if result contains an error
+      if (result.error) {
+        throw result.error;
+      }
+  
+      // Show success message
+      Alert.alert("Wohoo!", "Account created!");
+      navigation.goBack(); // Navigate back to login or main screen
+    } catch (error: any) {
+      console.error("Error encountered during sign-up", error);
+      Alert.alert("Error", error.message);
+    } finally {
+      // Stop loading in all cases
       setLoading(false);
     }
-
-
   };
-
   
   return (
     <KeyboardAvoidingView                 

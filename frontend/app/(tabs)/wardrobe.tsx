@@ -7,6 +7,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 
 import { useNavigation, Stack } from 'expo-router'; // Import useNavigation from expo-router
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAuthUser } from '@/globalUserStorage';
 
 // Defining the type for the navigation prop based on  routes
 type RootStackParamList = {
@@ -52,11 +53,15 @@ export default function WardrobeScreen() {
   const [colorOpen, setColorOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
+  const user =useAuthUser();
+  const userDisplayName = user?.displayName || 'User';
+
 // State variables for search bars
 const [searchInventory, setSearchInventory] = useState('');
 const [searchOutfits, setSearchOutfits] = useState('');
 const [searchStyleBoards, setSearchStyleBoards] = useState('');
-    
+
+
   const onOpen = () => {
     modalizeRef.current?.open();
   };
@@ -173,7 +178,7 @@ const [searchStyleBoards, setSearchStyleBoards] = useState('');
           </TouchableOpacity>
 
           {/* User Name */}
-          <Text style={styles.headerText}>User Name</Text>
+          <Text style={styles.headerText}>{userDisplayName}</Text>
 
         
           {/* Menu Button */}
