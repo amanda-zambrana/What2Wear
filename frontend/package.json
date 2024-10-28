@@ -41,7 +41,7 @@
     "lottie-ios": "^4.5.0",
     "lottie-react": "^2.4.0",
     "lottie-react-native": "^7.0.0",
-    "react": "18.2.0",
+    "react": "^18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.74.5",
     "react-native-dropdown-picker": "^5.4.6",
