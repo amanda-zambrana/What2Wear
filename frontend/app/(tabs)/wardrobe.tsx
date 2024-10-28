@@ -58,9 +58,6 @@ export default function WardrobeScreen() {
   const [colorOpen, setColorOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
-  const user =useAuthUser();
-  const userDisplayName = user?.displayName || 'User Name';
-
 // State variables for search bars
 const [searchInventory, setSearchInventory] = useState('');
 const [searchOutfits, setSearchOutfits] = useState('');
