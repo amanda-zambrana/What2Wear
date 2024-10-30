@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Alert } from 'react-native';
 import React, { useState, useRef } from 'react';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -8,6 +8,11 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { useNavigation, Stack } from 'expo-router'; // Import useNavigation from expo-router
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthUser } from '@/globalUserStorage';
+
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 
 // Defining the type for the navigation prop based on  routes
 type RootStackParamList = {
@@ -54,7 +59,8 @@ export default function WardrobeScreen() {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   const user =useAuthUser();
-  const userDisplayName = user?.displayName || 'User';
+  const userDisplayName = user?.displayName || 'User Name';
+
 
 // State variables for search bars
 const [searchInventory, setSearchInventory] = useState('');
@@ -98,10 +104,74 @@ const [searchStyleBoards, setSearchStyleBoards] = useState('');
     });
 
     if (!result.canceled) {
-      setNewItemImage(result.assets[0].uri); // Set new item image
-      console.log("New item image URL:", result.assets[0].uri); // Log the image URL
-      newItemRef.current?.open(); // Open the new item modal
+        const imageUri = result.assets[0].uri;
+        setNewItemImage(imageUri); // Set new item image locally
+
+        // Open the New Item Modal to allow the user to enter details
+        newItemRef.current?.open();
     }
+  };
+
+  // Adding a new function to handle saving the item details and uploading to Firestore
+  const saveNewItem = async () => {
+    // Check if the user is authenticated
+    const auth = getAuth();
+    const user = auth.currentUser;
+    const storage = getStorage();
+    const db = getFirestore();
+    
+    // Ensure that category, type, and color are not null or empty
+    if (!selectedCategory || !selectedType || !selectedColor) {
+        console.error("All item details must be selected");
+    return;
+    }
+
+    if (user && newItemImage) {
+        try {
+          // Fetch and validate the image
+          const response = await fetch(newItemImage);
+          if (!response.ok) {
+            throw new Error("Failed to fetch the image from the URI.");
+          }
+
+          const blob = await response.blob();
+
+          // Create a storage reference for the image
+          const imageRef = ref(storage, `users/${user.uid}/wardrobe/${Date.now()}.jpg`);
+    
+          // Upload image to Firebase Storage
+          await uploadBytes(imageRef, blob);
+    
+          // Get the download URL
+          const downloadURL = await getDownloadURL(imageRef);
+
+          // Save URL and item details to Firestore
+          await addDoc(collection(db, `users/${user.uid}/wardrobe`), {
+            imageUrl: downloadURL,
+            category: selectedCategory,
+            type: selectedType,
+            color: selectedColor,
+            name: itemDetails,
+            createdAt: new Date(),
+          });
+
+          // Alert.alert("Success", "New item added to wardrobe!", [{ text: "OK"}]);
+
+
+          console.log('Image uploaded and saved:', downloadURL);
+
+          // Close the modal after saving
+          newItemRef.current?.close();
+          
+            // Alert to notify the user of successful addition
+            Alert.alert("Success", "New item added to wardrobe!", [{ text: "OK" }]);
+
+        } catch (error) {
+          console.error('Error uploading image:', error);
+        }
+     }  else {
+        console.error("User is not authenticated or no image selected.");
+     }
   };
 
   const buttonNames = [
@@ -376,14 +446,8 @@ const [searchStyleBoards, setSearchStyleBoards] = useState('');
                 zIndexInverse={3000}
               />
 
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={() => {
-                // Logic to save the new item goes here
-                console.log("Item saved:", itemDetails);
-                newItemRef.current?.close(); // Close the new item modal after saving
-              }}
-            >
+            {/* Button to Add New Item */}
+            <TouchableOpacity style={styles.saveButton} onPress={saveNewItem}>
               <Text style={styles.saveButtonText}>Add to Wardrobe</Text>
             </TouchableOpacity>
 
