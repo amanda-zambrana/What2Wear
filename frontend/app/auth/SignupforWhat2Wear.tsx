@@ -23,7 +23,15 @@ import {auth} from './firebaseconfig';
 import {createUserWithEmailAndPassword} from 'firebase/auth' ;
 import { appSignUp } from '@/globalUserStorage';
 import { useAuthUser } from '@/globalUserStorage';
+import { useAuthLoading } from '@/globalUserStorage';
 const SignUpPage: React.FC = () => { 
+
+  const isLoadingAuth = useAuthLoading();
+
+  if (isLoadingAuth)
+  {
+    return <ActivityIndicator size = "large" color = "#ffffff" style = {{ flex: 1, justifyContent: 'center', alignItems: 'center' }} />;
+  }
 
   const [username, setUsername] = useState(''); //hpld userna,e
   const [email, setEmail] = useState(''); //hold password
@@ -119,13 +127,13 @@ const SignUpPage: React.FC = () => {
     <KeyboardAvoidingView                 
       behavior={Platform.OS === "ios" ? "padding" : "height"} // For iOS, use 'padding', for Android, use 'height'
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Offset to ensure content moves correctly
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: 'transparent' }}
       >
    
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {/* <Animated.View style={[styles.animatedContainer, { transform: [{ translateY: shiftValue }] }]}> */}
+    <SafeAreaView style={[styles.container, { flex: 1 }]}>
+    <ScrollView contentContainerStyle={[styles.scrollContainer, { flex: 1 }]}>
+      {/* <Animated.View style={[styles.animatedContainer, { transform: [{ translateY: shiftValue }] }]}> */}
             <View style={styles.header}>
               <Text style={styles.title}>Welcome to What2Wear</Text>
             </View>

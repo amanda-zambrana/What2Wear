@@ -78,9 +78,9 @@ const router = useRouter();
 
 
 
-      const result = await appSignIn(email, password);
+      const result = await appSignIn(email, password);  //CHANGED APPSIGNIN TO USER GLOBAL USER SESSION STATE
       if (result.error) {
-        // Cast result.error as any to allow TypeScript to recognize the 'code' property
+
         const error = result.error as { code: string; message?: string };
         let errorMessage;
         switch (error.code) {
@@ -103,8 +103,11 @@ const router = useRouter();
     }
     else 
     {
+
       Alert.alert("Success", "Logged In Successfully");
+      const {user, token} = result; 
       console.log("User logged in", result.user); // Confirm session persistence
+      console.log ("Token: ", token);
       router.push('/(tabs)');
     }
   }
