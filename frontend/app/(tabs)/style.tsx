@@ -13,7 +13,7 @@ export default function StyleScreen() {
   };
 
   const onFloatingButtonPress = () => {
-    actionSheetRef.current?.open(); // Open the floating button modal
+    actionSheetRef.current?.open(); 
   };
 
   // Rendering the outfit shuffle view
@@ -155,15 +155,15 @@ const styles = StyleSheet.create({
   header: {
     width: '100%',
     height: 110,
-    backgroundColor: '#3dc8ff', // Teal stripe
+    backgroundColor: '#3dc8ff', 
     alignItems: 'center',
     justifyContent: 'flex-end',
-    position: 'relative', // Allows positioning the menu button
+    position: 'relative', 
     marginBottom: 20,
     paddingBottom: 10,
   },
   headerText: {
-    color: '#000000', // Black text
+    color: '#000000', 
     fontSize: 28,
     fontWeight: 'bold',
   },
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   text: {
     color: '#000',
     fontSize: 18,
-    textAlign: 'center', // Add styling for text
+    textAlign: 'center', 
     marginVertical: 20,
   },
   menuContent: {

@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth'; 
 import { auth } from '../auth/firebaseconfig';
 
-import { useNavigation, Stack } from 'expo-router'; // Import useNavigation from expo-router
+import { useNavigation, Stack } from 'expo-router'; 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { appSignOut } from '@/globalUserStorage';
 import { AuthStore } from '@/globalUserStorage';
@@ -85,9 +85,6 @@ export default function Index() {
         </View>
 
         {/* Button to Navigate to Signup IMP: THIS IS TEMPORARY will change once login and auth works only for debugging purposes!!!!!! */}
-        {/* <TouchableOpacity style={styles.signupButton} onPress={navigateToSignup}>
-          <Text style={styles.signupButtonText}>Go to Sign Up</Text>
-        </TouchableOpacity> */}
 
         {/* Centered Section */}
         <View style={styles.centeredSection}>

@@ -5,7 +5,7 @@ import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
 
-import { useNavigation, Stack } from 'expo-router'; // Import useNavigation from expo-router
+import { useNavigation, Stack } from 'expo-router'; 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthUser } from '@/globalUserStorage';
 
@@ -156,15 +156,10 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
             createdAt: new Date(),
           });
 
-          // Alert.alert("Success", "New item added to wardrobe!", [{ text: "OK"}]);
-
-
           console.log('Image uploaded and saved:', downloadURL);
 
-          // Close the modal after saving
+          // Close the modal after saving item 
           newItemRef.current?.close();
-          
-            // Alert to notify the user of successful addition
             Alert.alert("Success", "New item added to wardrobe!", [{ text: "OK" }]);
 
         } catch (error) {
@@ -184,7 +179,7 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
     'Accessories '
 ];
   
-  // Fetching the wardrobe items from Firestore 
+  // Fetching the wardrobe items from Firestore for inventory browsing 
   useEffect(() => {
     const fetchWardrobeItems = async () => {
         const auth = getAuth();
@@ -211,7 +206,7 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
 
 
   const handleImagePress = () => {
-    // Navigate to a screen to display the full image and details or open a modal
+    // Navigate to a screen to display the full image and details or open a modal -- UPDATE 
     // navigation.navigate('ItemDetailsScreen', { item });
   };
   
@@ -247,9 +242,9 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
                     />
                 </TouchableOpacity>
               )}
-              keyExtractor={(item) => item.id} // Adjust this based on your item structure
-              numColumns={2} // Ensure two columns
-              contentContainerStyle={styles.flatListContent} // Center the items
+              keyExtractor={(item) => item.id} 
+              numColumns={2} // Ensure two columns of items in inventory 
+              contentContainerStyle={styles.flatListContent} 
             />
           </View>
         </ScrollView>
@@ -722,7 +717,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   saveButton: {
-    backgroundColor: '#4CAF50', // Green background for the button
+    backgroundColor: '#3dc8ff', 
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -766,8 +761,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   circularButton: {
-    width: 62, // Width of each button
-    height: 62, // Height of each button
+    width: 62, 
+    height: 62, 
     borderRadius: 30, // To make the button circular
     backgroundColor: '#ffffff',
     borderColor: '#3dc8ff', 
@@ -793,50 +788,6 @@ const styles = StyleSheet.create({
     marginVertical: 0,
     backgroundColor: '#fff',
   },
-  submitButton: {
-    backgroundColor: '#007BFF',
-    padding: 10,
-    borderRadius: 20,
-    width: '100%',
-  },
-  submitButtonText: {
-    color: '#fff',
-    textAlign: 'center',
-  },
-  wardrobeItemContainer: {
-    flexDirection: 'row',
-    marginBottom: 10,
-    paddingTop: 10,
-    paddingLeft: 50, 
-    paddingBottom: 20,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-  },
-  wardrobeItemImage: {
-    width: 130,
-    height: 130,
-    borderRadius: 8,
-  },
-  wardrobeItemDetails: {
-    marginLeft: 10,
-  },
-  wardrobeItemName: {
-    fontWeight: 'bold',
-  },
-  wardrobeItemInfo: {
-    color: '#777',
-  },
-  imageGridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  imageWrapper: {
-    width: '48%', // Adjust the width to leave space between columns
-    aspectRatio: 1, // Makes each image square
-    marginVertical: 10, // Add vertical margin between rows
-  },
-
   gridContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -845,16 +796,16 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     alignItems: 'center', // Center content within FlatList
-    paddingHorizontal: 10, // Optional: Add horizontal padding to help center the content
+    paddingHorizontal: 10, 
     paddingBottom: 220,
   },
   wardrobeImage: {
     width: '50%', // Adjust width to fit two images in a row with spacing
-    height: 150, // Set a fixed height or adjust as needed
+    height: 150, // Set a fixed height, fixing the centering issue
     aspectRatio: 1,
-    margin: 15, // Add margin for spacing
-    borderWidth: 3, // Border width
-    borderColor: 'black', // Border color
+    margin: 15, // Add margin for spacing of images 
+    borderWidth: 3, 
+    borderColor: 'black', 
     borderRadius: 5, 
   },
   
