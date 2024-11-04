@@ -240,6 +240,7 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
                       source={{ uri: item.imageUrl }} 
                       style={styles.wardrobeImage}
                     />
+                    <Text style={styles.itemName}>{item.name}</Text>
                 </TouchableOpacity>
               )}
               keyExtractor={(item) => item.id} 
@@ -293,7 +294,7 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
                         <Image source={{ uri: profileImage }} style={styles.profileImage} />
                     ) : (
                     <View style={styles.placeholderImage}>
-                        <Text style={styles.placeholderText}>U</Text>
+                        <Text style={styles.placeholderText}>𖨆</Text>
                     </View>
                     )}
           </TouchableOpacity>
@@ -808,5 +809,12 @@ const styles = StyleSheet.create({
     borderColor: 'black', 
     borderRadius: 5, 
   },
+  itemName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 3,
+  },  
   
 });

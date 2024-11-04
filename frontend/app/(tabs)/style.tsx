@@ -1,7 +1,30 @@
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
-import React, { useState, useRef } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+
+
+// Define the WardrobeItem type
+interface WardrobeItem {
+    id: string;
+    name: string;
+    imageUrl: string;
+    category: string; 
+}
+
+// Define the ItemsByCategory type
+type ItemsByCategory = {
+    [key: string]: WardrobeItem[]; // Allows any string key to access an array of wardrobeItems
+    tops: WardrobeItem[];
+    bottoms: WardrobeItem[];
+    footwear: WardrobeItem[];
+    accessories: WardrobeItem[];
+    outerwear: WardrobeItem[];
+};
+
 
 export default function StyleScreen() {
   const [activeView, setActiveView] = useState('outfit shuffle');
@@ -16,13 +39,108 @@ export default function StyleScreen() {
     actionSheetRef.current?.open(); 
   };
 
+  const [outfit, setOutfit] = useState<WardrobeItem[]>([]); // Initialize outfit state as an array of WardrobeItem
+  const [wardrobeItems, setWardrobeItems] = useState<ItemsByCategory>({
+    tops: [],
+    bottoms: [],
+    footwear: [],
+    accessories: [],
+    outerwear: []
+  });
+
+  const [shuffledOutfit, setShuffledOutfit] = useState<(WardrobeItem | null)[]>([]);
+  // const [wardrobeItems, setWardrobeItems] = useState({});
+  //const [shuffledOutfit, setShuffledOutfit] = useState([]);
+
+  const categories = ['accessories', 'outerwear', 'tops', 'bottoms', 'footwear'];
+  
+
+  useEffect(() => {
+    fetchWardrobeItems();
+  }, []);
+
+
+  // Use another useEffect to shuffle outfit whenever wardrobeItems changes
+  useEffect(() => {
+    if (Object.keys(wardrobeItems).length > 0) { // Ensure wardrobeItems is populated
+        setShuffledOutfit(shuffleOutfit());
+    }
+  }, [wardrobeItems]);
+
+  // Fetch the user's items from Firestore based on the item categories (5)
+  const fetchWardrobeItems = async () => {
+    try {
+        const auth = getAuth();
+        const userId = auth.currentUser?.uid; // Get the current user's ID
+
+        if (!userId) {
+            console.error("No user is currently signed in.");
+            return;
+        }
+
+        const wardrobeRef = collection(getFirestore(), `users/${userId}/wardrobe`);
+        const wardrobeSnapshot = await getDocs(wardrobeRef);
+    
+        // Initialize itemsByCategory
+        const itemsByCategory: ItemsByCategory = {
+            tops: [],
+            bottoms: [],
+            footwear: [],
+            accessories: [],
+            outerwear: [],
+        };
+
+        wardrobeSnapshot.forEach(doc => {
+            const data = doc.data() as WardrobeItem;
+            const category = data.category; // Assuming category is a string
+            if (itemsByCategory[category]) {
+                itemsByCategory[category].push(data); // Add the item to the appropriate category
+            }
+        });
+
+        setWardrobeItems(itemsByCategory);
+        // setShuffledOutfit(shuffleOutfit()); // Calling shuffleOutfit here to set an initial outfit 
+        console.log('Fetched items by category:', itemsByCategory); // Check your fetched items
+    } catch (error) {
+        console.error("Error fetching wardrobe items:", error);
+    }
+};
+
+
+  // Basic outfit shuffle to create a style 
+  const shuffleOutfit = (): (WardrobeItem | null)[] => {
+    const newOutfit: (WardrobeItem | null)[] = categories.map(category => {
+        const items = wardrobeItems[category] || [];
+        return items.length > 0 ? items[Math.floor(Math.random() * items.length)] : null;
+    });
+
+    // filter out null values from newOutfit
+    return newOutfit.filter(item => item !== null) as WardrobeItem[]; // Return the filtered outfit instead of setting it
+  };
+
+  const handleShuffle = () => {
+    setShuffledOutfit(shuffleOutfit());
+  };
+    
+
+    // Render a single item in the outfit shuffle
+    const renderShuffledItem = ({ item }: { item: WardrobeItem | null}) => {
+        if (!item) return null;
+        return (
+            <View style={styles.itemContainer}>
+                <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
+            </View>
+        );
+    };
+
+
   // Rendering the outfit shuffle view
   const renderOutfitShuffleView = () => (
     <View>
 
       {/* Floating Button 1 - Apply Filters , change onFloatingButtonPress to another function when add functionality*/}
       <TouchableOpacity
-        style={[styles.floatingButton, { right: 140, top: -10}]}
+        style={[styles.floatingButton, { right: 190, top: -10}]}
         onPress={onFloatingButtonPress} 
     >
         <Text style={styles.floatingButtonText}>☰</Text>
@@ -30,22 +148,31 @@ export default function StyleScreen() {
 
       {/* Floating Button 2 - Shuffle, , change onFloatingButtonPress to another function when add functionality*/}
       <TouchableOpacity
-        style={[styles.floatingButton, { right: 80, top: -10}]}
+        style={[styles.floatingButton, { right: 130, top: -10}]}
         onPress={onFloatingButtonPress}
     >
-        <Text style={styles.floatingButtonText}>⇄</Text>
+        <Text style={styles.floatingButtonText} onPress={handleShuffle}>⇄</Text>
     </TouchableOpacity>
 
       {/* Floating Button 3 - Save Outfit, change onFloatingButtonPress to another function when add functionality */}
       <TouchableOpacity
-        style={[styles.floatingButton, { right: -190, top: -10}]}
+        style={[styles.floatingButton, { right: -140, top: -10}]}
         onPress={onFloatingButtonPress}
     >
         <Text style={styles.floatingButtonText}>→</Text>
     </TouchableOpacity>
 
+    <FlatList
+        data={shuffledOutfit}
+        renderItem={renderShuffledItem}
+        keyExtractor={(item, index) => item ? item.id : index.toString()}
+        contentContainerStyle={styles.flatListContainer}
+    />
+
     </View>
+
   );
+
 
   // Rendering the smart shuffle view
   const renderSmartShuffleView = () => (
@@ -234,4 +361,23 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: 'bold',
   },
+  itemContainer: {
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  itemImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  },
+  itemText: {
+    marginTop: 5,
+    fontSize: 16,
+  },
+  flatListContainer: {
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    flexGrow: 1,
+  }
+
 });
