@@ -1,7 +1,7 @@
 import { Text, View, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Alert } from 'react-native';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Modalize } from 'react-native-modalize';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
 
@@ -60,12 +60,17 @@ export default function WardrobeScreen() {
 
   const user =useAuthUser();
   const userDisplayName = user?.displayName || 'User Name';
+// <<<<<<< HEAD
 
+//=======
+//>>>>>>> b01c4490a2b61acfc1b49ca66e03c30aa9a930f2
 
 // State variables for search bars
 const [searchInventory, setSearchInventory] = useState('');
 const [searchOutfits, setSearchOutfits] = useState('');
 const [searchStyleBoards, setSearchStyleBoards] = useState('');
+
+const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetched wardrobe items
 
 
   const onOpen = () => {
@@ -182,10 +187,43 @@ const [searchStyleBoards, setSearchStyleBoards] = useState('');
     'Footwear ',
     'Accessories '
 ];
+  
+  // Fetching the wardrobe items from Firestore 
+  useEffect(() => {
+    const fetchWardrobeItems = async () => {
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        const db = getFirestore();
+
+        if (currentUser) {
+            try {
+                const wardrobeCollection = collection(db, `users/${currentUser.uid}/wardrobe`);
+                const wardrobeSnapshot = await getDocs(wardrobeCollection);
+                const items: any[] = wardrobeSnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+                setWardrobeItems(items); // Storing the user items in state
+            } catch (error) {
+                console.error('Error fetching wardrobe items:', error);
+            }
+        }
+    };
+
+    fetchWardrobeItems();
+  }, []);
+
+
+  const handleImagePress = () => {
+    // Navigate to a screen to display the full image and details or open a modal
+    // navigation.navigate('ItemDetailsScreen', { item });
+  };
+  
 
   // Rendering the inventory view
   const renderInventoryView = () => (
     <View>
+        {/* Circular buttons for filtering options */}
         <View style={styles.circularButtonContainer}>
             {buttonNames.map((buttonName, index) => (
                 <TouchableOpacity key={index} style={styles.circularButton}>
@@ -193,11 +231,33 @@ const [searchStyleBoards, setSearchStyleBoards] = useState('');
                 </TouchableOpacity>
             ))}
         </View>
+
         <SearchBar
             value={searchInventory}
             onChange={setSearchInventory}
             placeholder="Search your inventory..."
         />
+
+        {/* Displaying the fetched user wardrobe inventory items */}
+        <ScrollView>
+          <View style={styles.gridContainer}>
+            <FlatList
+              data={wardrobeItems}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={handleImagePress}>
+                    <Image
+                      source={{ uri: item.imageUrl }} 
+                      style={styles.wardrobeImage}
+                    />
+                </TouchableOpacity>
+              )}
+              keyExtractor={(item) => item.id} // Adjust this based on your item structure
+              numColumns={2} // Ensure two columns
+              contentContainerStyle={styles.flatListContent} // Center the items
+            />
+          </View>
+        </ScrollView>
+
     </View>
 );
 
@@ -746,6 +806,60 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#fff',
     textAlign: 'center',
+  },
+  wardrobeItemContainer: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    paddingTop: 10,
+    paddingLeft: 50, 
+    paddingBottom: 20,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+  },
+  wardrobeItemImage: {
+    width: 130,
+    height: 130,
+    borderRadius: 8,
+  },
+  wardrobeItemDetails: {
+    marginLeft: 10,
+  },
+  wardrobeItemName: {
+    fontWeight: 'bold',
+  },
+  wardrobeItemInfo: {
+    color: '#777',
+  },
+  imageGridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  imageWrapper: {
+    width: '48%', // Adjust the width to leave space between columns
+    aspectRatio: 1, // Makes each image square
+    marginVertical: 10, // Add vertical margin between rows
+  },
+
+  gridContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center', // Center the items horizontally
+    justifyContent: 'flex-start', // Center the items vertically
+  },
+  flatListContent: {
+    alignItems: 'center', // Center content within FlatList
+    paddingHorizontal: 10, // Optional: Add horizontal padding to help center the content
+    paddingBottom: 220,
+  },
+  wardrobeImage: {
+    width: '50%', // Adjust width to fit two images in a row with spacing
+    height: 150, // Set a fixed height or adjust as needed
+    aspectRatio: 1,
+    margin: 15, // Add margin for spacing
+    borderWidth: 3, // Border width
+    borderColor: 'black', // Border color
+    borderRadius: 5, 
   },
   
 });
