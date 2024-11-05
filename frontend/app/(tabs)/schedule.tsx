@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useNavigation, Stack } from 'expo-router'; // Import useNavigation from expo-router
+import { useNavigation, Stack } from 'expo-router'; 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // Defining the type for the navigation prop based on  routes
@@ -20,7 +20,7 @@ const CurrentDateDisplay = () => {
   useEffect(() => {
     const date = new Date();
     const formattedDate = date.toLocaleDateString('en-US', {
-      weekday: 'long', // Full name of the day
+      weekday: 'long', 
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -102,22 +102,22 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff', // White background
+    backgroundColor: '#ffffff', 
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
   header: {
     width: '100%',
     height: 110,
-    backgroundColor: '#3dc8ff', // Teal stripe
+    backgroundColor: '#3dc8ff', 
     alignItems: 'center',
     justifyContent: 'flex-end',
-    position: 'relative', // Allows positioning the menu
+    position: 'relative', 
     marginBottom: 20,
     paddingBottom: 10, 
   },
   headerText: {
-    color: '#000000', // Black text
+    color: '#000000',
     fontSize: 28,
     fontWeight: 'bold',
   },
