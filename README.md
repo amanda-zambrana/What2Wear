@@ -1,5 +1,13 @@
 # What2Wear
 
+![Workflow Status](https://github.com/amanda-zambrana/What2Wear/actions/workflows/ci-cd.yml/badge.svg)
+
+Welcome to What2Wear, your digital wardrobe and smart stylist!
+
+
+
+# What2Wear
+
 Welcome to What2Wear, your digital wardrobe and smart stylist! 
 
 ## Current Repository Structure 
