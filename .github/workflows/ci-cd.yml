@@ -1,4 +1,4 @@
-name: Java CI/CD Pipeline
+name: What2Wear CI/CD Pipeline
 
 on:
   push:
@@ -13,69 +13,70 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code
+      # Step 1: Checkout code
       - name: Checkout code
-        uses: actions/checkout@v3  # Update to v3 for Node 20 support
+        uses: actions/checkout@v3
 
-      # Set up JDK (Java Development Kit)
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3  # Update to v3 for Node 20 support
+      # Step 2: Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
-      # Cache Maven dependencies
+      # Step 3: Cache Maven dependencies
       - name: Cache Maven packages
-        uses: actions/cache@v3  # Update to v3 for Node 20 support
+        uses: actions/cache@v3
         with:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Build the project using Maven
-      - name: Build with Maven
+      # Step 4: Build and test the backend using Maven
+      - name: Build and Test Backend
         run: |
           cd backend
           mvn clean install
-
-      # Run tests
-      - name: Run tests
-        run: |
-          cd backend
           mvn test
 
   build_frontend:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
-        uses: actions/checkout@v3  # Update to v3 for Node 20 support
+        uses: actions/checkout@v3
 
-      # Set up Node.js
+      # Step 2: Set up Node.js
       - name: Set up Node.js
-        uses: actions/setup-node@v3  # Update to v3 for Node 20 support
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      # Cache npm dependencies
+      # Step 3: Cache npm dependencies
       - name: Cache npm packages
-        uses: actions/cache@v3  # Update to v3 for Node 20 support
+        uses: actions/cache@v3
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # Install and Build Frontend
-      - name: Install and Build Frontend
+      # Step 4: Install dependencies for the frontend
+      - name: Install Frontend Dependencies
         run: |
           cd frontend
           npm install
-          npm run build
 
-      # Run Frontend Tests
-      - name: Run Frontend Tests
+      # Step 5: Start Expo in Web Mode to check for issues
+      - name: Start Expo in Web Mode
+        run: |
+          cd frontend
+          expo start --web
+
+      # Optional Step 6: Run frontend tests if defined
+      - name: Run Expo Tests
         run: |
           cd frontend
           npm test
