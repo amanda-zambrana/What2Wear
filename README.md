@@ -4,14 +4,6 @@
 
 Welcome to What2Wear, your digital wardrobe and smart stylist!
 
-
-
-
-
-# What2Wear
-
-Welcome to What2Wear, your digital wardrobe and smart stylist! 
-
 ## Current Repository Structure 
 Note: this structure will be extended as we develop more project components; this is our basic beginning structure.
 ```
