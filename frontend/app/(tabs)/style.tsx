@@ -1,10 +1,13 @@
-import { Text, View, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, FlatList, Image, TextInput, Modal } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, addDoc } from 'firebase/firestore';
+
+import { captureRef } from 'react-native-view-shot';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 
 // Define the WardrobeItem type
@@ -31,6 +34,12 @@ export default function StyleScreen() {
   const modalizeRef = useRef<Modalize>(null);
   const actionSheetRef = useRef<Modalize>(null); // Ref for the floating button menu
 
+  const [shuffledOutfit, setShuffledOutfit] = useState<(WardrobeItem | null)[]>([]);
+  const [outfitName, setOutfitName] = useState('');
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [screenshotUri, setScreenshotUri] = useState<string | null>(null);
+  const screenshotRef = useRef(null);
+
   const onOpen = () => {
     modalizeRef.current?.open();
   };
@@ -47,10 +56,6 @@ export default function StyleScreen() {
     accessories: [],
     outerwear: []
   });
-
-  const [shuffledOutfit, setShuffledOutfit] = useState<(WardrobeItem | null)[]>([]);
-  // const [wardrobeItems, setWardrobeItems] = useState({});
-  //const [shuffledOutfit, setShuffledOutfit] = useState([]);
 
   const categories = ['accessories', 'outerwear', 'tops', 'bottoms', 'footwear'];
   
@@ -133,10 +138,75 @@ export default function StyleScreen() {
         );
     };
 
+    const handleSaveOutfit = async () => {
+      // Check if the user is authenticated
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const storage = getStorage();
+      const db = getFirestore();
+      
+      // Ensure that category, type, and color are not null or empty
+      if (!screenshotUri || !outfitName ) {
+          console.error("Please provide a name for the outfit");
+      return;
+      }
+  
+      if (user && screenshotUri) {
+          try {
+            // Fetch and validate the image
+            const response = await fetch(screenshotUri);
+            if (!response.ok) {
+              throw new Error("Failed to fetch the image from the URI.");
+            }
+  
+            const blob = await response.blob();
+  
+            // Create a storage reference for the image
+            const imageRef = ref(storage, `users/${user.uid}/outfits/${Date.now()}.jpg`);
+      
+            // Upload image to Firebase Storage
+            await uploadBytes(imageRef, blob);
+      
+            const downloadURL = await getDownloadURL(imageRef);
+  
+            // Save URL and item details to Firestore
+            await addDoc(collection(db, `users/${user.uid}/outfits`), {
+              imageUrl: downloadURL,
+              name: outfitName,
+              createdAt: new Date(),
+            });
+  
+            console.log('Outfit uploaded and saved:', downloadURL);
+  
+            // Close the modal after saving item 
+            setModalVisible(false);
+            setOutfitName('');
+            alert('Outfit saved successfully!');
+          } catch (error) {
+            console.error('Error saving outfit:', error);
+          }
+       }  else {
+          console.error("User is not authenticated or no image selected.");
+       }
+    };
+
+  const captureScreenshot = async () => {
+    try {
+      const uri = await captureRef(screenshotRef, {
+        format: "jpg",
+        quality: 0.8,
+      });
+      setScreenshotUri(uri);
+      setModalVisible(true); // Show modal after taking screenshot
+    } catch (error) {
+      console.error("Failed to capture screenshot:", error);
+    }
+  };
+
 
   // Rendering the outfit shuffle view
   const renderOutfitShuffleView = () => (
-    <View>
+    <View ref={screenshotRef}>
 
       {/* Floating Button 1 - Apply Filters , change onFloatingButtonPress to another function when add functionality*/}
       <TouchableOpacity
@@ -149,7 +219,7 @@ export default function StyleScreen() {
       {/* Floating Button 2 - Shuffle, , change onFloatingButtonPress to another function when add functionality*/}
       <TouchableOpacity
         style={[styles.floatingButton, { right: 130, top: -10}]}
-        onPress={onFloatingButtonPress}
+        onPress={handleShuffle}
     >
         <Text style={styles.floatingButtonText} onPress={handleShuffle}>⇄</Text>
     </TouchableOpacity>
@@ -157,7 +227,7 @@ export default function StyleScreen() {
       {/* Floating Button 3 - Save Outfit, change onFloatingButtonPress to another function when add functionality */}
       <TouchableOpacity
         style={[styles.floatingButton, { right: -140, top: -10}]}
-        onPress={onFloatingButtonPress}
+        onPress={captureScreenshot}
     >
         <Text style={styles.floatingButtonText}>→</Text>
     </TouchableOpacity>
@@ -267,6 +337,37 @@ export default function StyleScreen() {
             </TouchableOpacity>
           </View>
         </Modalize>
+
+        {/* Modal for naming outfit */}
+        <Modal visible={isModalVisible} animationType="slide" transparent={true}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Name Your Outfit</Text>
+
+              {/* Conditionally render the Image component only if screenshotUri is not null */}
+              {screenshotUri ? (
+                <Image source={{ uri: screenshotUri }} style={styles.screenshotPreview} />
+              ) : (
+                <Text>No screenshot available</Text> // Optionally, display a fallback message
+              )}        
+
+              <TextInput
+                style={styles.input}
+                placeholder="Enter a name for this outfit..."
+                placeholderTextColor={'#898989'}
+                value={outfitName}
+                onChangeText={setOutfitName}
+              />
+              <TouchableOpacity style={styles.saveButton} onPress={handleSaveOutfit}>
+                <Text style={styles.saveButtonText}>Save Outfit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
       </View>
     </GestureHandlerRootView>
   );
@@ -378,6 +479,54 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     flexGrow: 1,
-  }
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 10,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    alignItems: 'center',
+    height: '70%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  screenshotPreview: {
+    marginTop: 0,
+    width: 70,
+    height: 550,
+    marginBottom: -145,
+  },
+  input: {
+    width: '100%',
+    padding: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  saveButton: {
+    backgroundColor: '#3dc8ff',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  cancelButtonText: {
+    color: 'red',
+    marginTop: 10,
+  },
 
 });
