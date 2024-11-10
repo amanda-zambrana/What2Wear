@@ -10,7 +10,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthUser } from '@/globalUserStorage';
 
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 
@@ -46,6 +46,8 @@ export default function WardrobeScreen() {
   const actionSheetRef = useRef<Modalize>(null); // Ref for the floating button menu
   const profileRef = useRef<Modalize>(null); // Ref for the profile modal
   const newItemRef = useRef<Modalize>(null); // Ref for the New Item modal
+  const itemModalizeRef = useRef<Modalize>(null);  // Ref for the item details modal
+  const outfitModalizeRef = useRef<Modalize>(null); // Ref for the outfit details modal
 
   const [profileImage, setProfileImage] = useState<string | null>(null); // Store user's profile image
   const [newItemImage, setNewItemImage] = useState<string | null>(null); // Store new item image
@@ -58,6 +60,8 @@ export default function WardrobeScreen() {
   const [colorOpen, setColorOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
+  const [selectedOutfit, setSelectedOutfit] = useState<any>(null);
+
   const user =useAuthUser();
   const userDisplayName = user?.displayName || 'User Name';
 // <<<<<<< HEAD
@@ -65,12 +69,13 @@ export default function WardrobeScreen() {
 //=======
 //>>>>>>> b01c4490a2b61acfc1b49ca66e03c30aa9a930f2
 
-// State variables for search bars
-const [searchInventory, setSearchInventory] = useState('');
-const [searchOutfits, setSearchOutfits] = useState('');
-const [searchStyleBoards, setSearchStyleBoards] = useState('');
+  // State variables for search bars
+  const [searchInventory, setSearchInventory] = useState('');
+  const [searchOutfits, setSearchOutfits] = useState('');
+  const [searchStyleBoards, setSearchStyleBoards] = useState('');
 
-const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetched wardrobe items
+  const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetched wardrobe items
+  const [outfits, setOutfits] = useState<any[]>([]); // State for fetched outfits
 
 
   const onOpen = () => {
@@ -147,11 +152,10 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
           // Upload image to Firebase Storage
           await uploadBytes(imageRef, blob);
     
-          // Get the download URL
           const downloadURL = await getDownloadURL(imageRef);
 
           // Save URL and item details to Firestore
-          await addDoc(collection(db, `users/${user.uid}/wardrobe`), {
+          const docRef = await addDoc(collection(db, `users/${user.uid}/wardrobe`), {
             imageUrl: downloadURL,
             category: selectedCategory,
             type: selectedType,
@@ -161,6 +165,7 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
           });
 
           console.log('Image uploaded and saved:', downloadURL);
+          console.log("Document written with ID: ", docRef.id);
 
           // Close the modal after saving item 
           newItemRef.current?.close();
@@ -168,20 +173,14 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
 
         } catch (error) {
           console.error('Error uploading image:', error);
+          console.error("Error adding document: ", error);
         }
      }  else {
         console.error("User is not authenticated or no image selected.");
      }
   };
 
-  const buttonNames = [
-    'All',
-    'Outerwear',
-    'Tops',
-    'Bottoms ',
-    'Footwear ',
-    'Accessories '
-];
+  const buttonNames = ['All', 'Outerwear', 'Tops', 'Bottoms ', 'Footwear ', 'Accessories '];
   
   // Fetching the wardrobe items from Firestore for inventory browsing 
   useEffect(() => {
@@ -208,13 +207,141 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
     fetchWardrobeItems();
   }, []);
 
+  useEffect(() => {
+    const fetchOutfits = async () => {
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        const db = getFirestore();
 
-  const handleImagePress = () => {
-    // Navigate to a screen to display the full image and details or open a modal -- UPDATE 
-    // navigation.navigate('ItemDetailsScreen', { item });
+        if (currentUser) {
+            try {
+                const outfitsCollection = collection(db, `users/${currentUser.uid}/outfits`);
+                const outfitsSnapshot = await getDocs(outfitsCollection);
+                const fetchedOutfits: any[] = outfitsSnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+                setOutfits(fetchedOutfits); // Storing the user outfits in state
+            } catch (error) {
+                console.error('Error fetching outfits:', error);
+            }
+        }
+    };
+    fetchOutfits();
+}, []);  // This will run once when the component mounts
+
+
+  const handleImagePress = (item: any) => {
+    // Set the selected item and open the modal
+    setSelectedOutfit(item);
+    itemModalizeRef.current?.open();  // Open the modal with the item details
+  };
+
+  const ItemDetailsModal = () => (
+    <Modalize ref={itemModalizeRef} adjustToContentHeight={true}>
+      {selectedOutfit && (
+        <View style={styles.itemModalContent}>
+          <Text style={styles.outfitName}>{selectedOutfit.name}</Text>
+          <Image source={{ uri: selectedOutfit.imageUrl }} style={styles.itemImage} />
+          <Text style={styles.itemDetails}>
+            {`Category: ${selectedOutfit.category}\nType: ${selectedOutfit.type}\nColor: ${selectedOutfit.color}`}
+          </Text>
+          {/* Button to delete item */}
+          <TouchableOpacity onPress={() => deleteItem(selectedOutfit.id)} style={styles.itemDeleteButton}>
+            <Text style={styles.deleteButtonText}>Delete Item</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </Modalize>
+  );
+
+  const deleteItem = async (itemId: string) => {
+    Alert.alert(
+      "Are you sure?",
+      "Do you really want to delete this item?",
+      [
+        {
+          text: "No, don't delete",
+          onPress: () => console.log('Delete canceled'),
+          style: "cancel",
+        },
+        {
+          text: "Yes, delete",
+          onPress: async () => {
+            try {
+              const db = getFirestore();
+              await deleteDoc(doc(db, `users/${getAuth().currentUser?.uid}/wardrobe`, itemId));
+              Alert.alert('Success', 'Item deleted successfully!');
+              // Update state to remove the item from the inventory
+              setWardrobeItems(wardrobeItems.filter(item => item.id !== itemId));
+              modalizeRef.current?.close(); // Close the modal after deletion
+            } catch (error) {
+              console.error('Error deleting item:', error);
+              Alert.alert('Error', 'Failed to delete item');
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
   };
   
 
+  // Handle outfit press to open the modal
+  const handleOutfitPress = (outfit: any) => {
+    setSelectedOutfit(outfit);
+    outfitModalizeRef.current?.open();  // Open the modal with the outfit details
+  };
+
+  // Delete outfit from Firestore
+  const deleteOutfit = async (outfitId: string) => {
+    Alert.alert(
+      "Are you sure?",
+      "Do you really want to delete this outfit?",
+      [
+        {
+          text: "No, don't delete",
+          onPress: () => console.log('Delete outfit canceled'),
+          style: "cancel",
+        },
+        {
+          text: "Yes, delete",
+          onPress: async () => {
+            try {
+              const db = getFirestore();
+              await deleteDoc(doc(db, `users/${getAuth().currentUser?.uid}/outfits`, outfitId));
+              Alert.alert('Success', 'Outfit deleted successfully!');
+              setOutfits(outfits.filter(outfit => outfit.id !== outfitId)); // Update state to remove the deleted outfit
+              modalizeRef.current?.close(); // Close the modal after deletion
+            } catch (error) {
+              console.error('Error deleting outfit:', error);
+              Alert.alert('Error', 'Failed to delete outfit');
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+  
+
+  // Outfit details modal (Modalize component)
+  const OutfitDetailsModal = () => (
+    <Modalize ref={outfitModalizeRef} adjustToContentHeight={true}>
+      {selectedOutfit && (
+        <View style={styles.outfitModalContent}>
+          <Text style={styles.outfitName}>{selectedOutfit.name}</Text>
+          <Image source={{ uri: selectedOutfit.imageUrl }} style={styles.outfitImage} />
+          {/* Button to delete outfit */}
+          <TouchableOpacity onPress={() => deleteOutfit(selectedOutfit.id)} style={styles.outfitDeleteButton}>
+            <Text style={styles.deleteButtonText}>Delete Outfit</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </Modalize>
+  );
+
+  
   // Rendering the inventory view
   const renderInventoryView = () => (
     <View>
@@ -227,11 +354,7 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
             ))}
         </View>
 
-        <SearchBar
-            value={searchInventory}
-            onChange={setSearchInventory}
-            placeholder="Search your inventory..."
-        />
+        <SearchBar value={searchInventory} onChange={setSearchInventory} placeholder="Search your inventory..."/>
 
         {/* Displaying the fetched user wardrobe inventory items */}
         <ScrollView>
@@ -239,16 +362,13 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
             <FlatList
               data={wardrobeItems}
               renderItem={({ item }) => (
-                <TouchableOpacity onPress={handleImagePress}>
-                    <Image
-                      source={{ uri: item.imageUrl }} 
-                      style={styles.wardrobeImage}
-                    />
+                <TouchableOpacity onPress={() => handleImagePress(item)}>
+                    <Image source={{ uri: item.imageUrl }} style={styles.wardrobeImage}/>
                     <Text style={styles.itemName}>{item.name}</Text>
                 </TouchableOpacity>
               )}
               keyExtractor={(item) => item.id} 
-              numColumns={2} // Ensure two columns of items in inventory 
+              numColumns={2} // Ensure two columns of items in inventory view
               contentContainerStyle={styles.flatListContent} 
             />
           </View>
@@ -257,36 +377,46 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
     </View>
 );
 
-  // Rendering the outfits view
+  {/* Rendering the outfits view */}
   const renderOutfitsView = () => (
     <View>
-        <SearchBar
-            value={searchOutfits}
-            onChange={setSearchOutfits}
-            placeholder="Search your outfits..."
-        />
+        <SearchBar value={searchOutfits} onChange={setSearchOutfits} placeholder="Search your outfits..."/>
+    
+        <ScrollView>
+            <View style={styles.gridContainer}>
+                <FlatList
+                    data={outfits}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity onPress={() => handleOutfitPress(item)}>
+                            <Image source={{ uri: item.imageUrl }} style={styles.wardrobeOutfitsImage} />
+                            <Text style={styles.itemName}>{item.name}</Text>
+                        </TouchableOpacity>
+                    )}
+                    keyExtractor={(item) => item.id}
+                    numColumns={2}
+                    contentContainerStyle={styles.flatListContent}
+                />
+            </View>
+        </ScrollView>
+    
     </View>
   );
 
-  // Rendering the style boards view
+  {/* Rendering the style boards view */}
   const renderStyleBoardsView = () => (
     <View>
-        <SearchBar
-        value={searchStyleBoards}
-        onChange={setSearchStyleBoards}
-        placeholder="Search your style boards..."
-        />
+        <SearchBar value={searchStyleBoards} onChange={setSearchStyleBoards} placeholder="Search your style boards..."/>
     </View>
   );
 
-  // Create a navigation reference for buttons to navigate to diff tabs 
-  const navigation = useNavigation<NavigationProp>(); // Use the defined navigation prop type
+  // Navigation reference for buttons to navigate to diff tabs 
+  const navigation = useNavigation<NavigationProp>(); 
 
   // Function to handle navigation to the "Style" tab to create a new outfit 
   const handleCreateNewOutfit = () => {
     navigation.navigate('style'); 
   };
-
+ 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={styles.container}>
@@ -509,6 +639,10 @@ const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetc
 
             </View>
             </Modalize>
+
+            <ItemDetailsModal />
+            <OutfitDetailsModal />
+
         </View>
     </GestureHandlerRootView>
   );
@@ -813,6 +947,17 @@ const styles = StyleSheet.create({
     borderColor: 'black', 
     borderRadius: 5, 
   },
+  wardrobeOutfitsImage: {
+    width: '50%', // Adjust width to fit two images in a row with spacing
+    height: 180, // Set a fixed height, fixing the centering issue
+    aspectRatio: 0.8,
+    margin: 30,
+    marginBottom: 10,
+    borderWidth: 3, 
+    borderColor: 'black', 
+    borderRadius: 5,
+    resizeMode: 'contain',  // Ensures the entire image fits within the container 
+  },
   itemName: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -820,5 +965,54 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 3,
   },  
+  itemModalContent: {
+    padding: 20,
+    alignItems: 'center',
+    height: 400,
+  },
+  itemImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
+    marginTop: 14,
+  },
+  outfitModalContent: {
+    padding: 20,
+    alignItems: 'center',
+    height: 600,
+  },
+  outfitName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 0,
+  },
+  outfitImage: {
+    width: 80,
+    height: 550,
+    borderRadius: 10,
+    marginTop: 30,
+  },
+  outfitDeleteButton: {
+    marginTop: -80,
+    padding: 10,
+    backgroundColor: 'red',
+    borderRadius: 5,
+  },
+  itemDeleteButton: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: 'red',
+    borderRadius: 5,
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  itemDetails: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginVertical: 10,
+  },
   
 });
