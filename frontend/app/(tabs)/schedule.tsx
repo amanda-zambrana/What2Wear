@@ -4,6 +4,7 @@ import { Modalize } from 'react-native-modalize';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation, Stack } from 'expo-router'; 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Calendar, DateData } from 'react-native-calendars'; // Import the calendar component
 
 // Defining the type for the navigation prop based on  routes
 type RootStackParamList = {
@@ -35,6 +36,7 @@ const CurrentDateDisplay = () => {
 
 export default function Index() {
   const modalizeRef = useRef<Modalize>(null);
+  const [currentMonth, setCurrentMonth] = useState<string>(new Date().toISOString().split('T')[0].slice(0, 7)); // format: YYYY-MM
 
   const onOpen = () => {
     modalizeRef.current?.open();
@@ -46,6 +48,17 @@ export default function Index() {
   // Function to handle navigation to the "Style" tab to create a new outfit 
   const handleCreateNewOutfit = () => {
       navigation.navigate('style'); 
+  };
+
+  const handleMonthChange = (direction: string) => {
+    const current = new Date(currentMonth);
+    if (direction === 'next') {
+      current.setMonth(current.getMonth() + 1);
+    } else if (direction === 'prev') {
+      current.setMonth(current.getMonth() - 1);
+    }
+    const newMonth = current.toISOString().split('T')[0].slice(0, 7); // format: YYYY-MM
+    setCurrentMonth(newMonth);
   };
 
   return (
@@ -60,6 +73,23 @@ export default function Index() {
 
         {/* Add the CurrentDateDisplay Component Below the Header */}
         <CurrentDateDisplay />
+
+        {/* Add the Calendar with month navigation */}
+        <View style={styles.calendarContainer}>
+          {/*<TouchableOpacity onPress={() => handleMonthChange('prev')} style={styles.navButton}>
+            <Text style={styles.navButtonText}>←</Text>
+          </TouchableOpacity> */}
+          
+          <Calendar
+            current={currentMonth}
+            onMonthChange={(date: DateData) => setCurrentMonth(date.dateString)}
+            style={styles.calendar}
+          />
+          
+          {/* <TouchableOpacity onPress={() => handleMonthChange('next')} style={styles.navButton}>
+            <Text style={styles.navButtonText}>→</Text>
+          </TouchableOpacity> */}
+        </View>
 
         {/* Centered Section */}
         <View style={styles.centeredSection}>
@@ -144,7 +174,7 @@ const styles = StyleSheet.create({
   },
   centeredSection: {
     position: 'absolute',
-    bottom: '10%', 
+    bottom: '5%', 
     alignItems: 'center',
     width: '100%',
   },
@@ -171,7 +201,26 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 18,
     fontWeight: '500',
-    marginTop: 10,
+    marginTop: 5,
+    marginBottom: 5,
     color: '#333',
   },
+  calendarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navButton: {
+    padding: 10,
+  },
+  navButtonText: {
+    fontSize: 24,
+    color: '#000',
+  },
+  calendar: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginHorizontal: 10,
+  },
+
 });
