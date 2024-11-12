@@ -1,15 +1,14 @@
 name: What2Wear CI/CD Pipeline
 
 on:
-  workflow_dispatch: # Allows manual execution
   push:
     branches:
       - main
-      - Meghana-Arumilli-patch-2
+      - Meghana-Arumilli-new-branch # Include your new branch name here
   pull_request:
     branches:
       - main
-      - Meghana-Arumilli-patch-2
+      - Meghana-Arumilli-new-branch # Include your new branch name here
 
 jobs:
   build_backend:
