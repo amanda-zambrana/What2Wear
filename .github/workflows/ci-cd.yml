@@ -33,7 +33,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Step 4: Build and Test Backend with Debug Logging
+      # Step 4: Test Node.js 20 Compatibility
+      - name: Test Node.js 20 Compatibility
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # Step 5: Build and Test Backend with Debug Logging
       - name: Build and Test Backend
         run: |
           cd backend
@@ -53,7 +59,7 @@ jobs:
         with:
           node-version: '16'
 
-      # Step 3: Cache npm dependencies
+      # Step 3: Cache npm packages
       - name: Cache npm packages
         uses: actions/cache@v3
         with:
@@ -62,22 +68,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # Step 4: Install dependencies for the frontend
-      - name: Install Frontend Dependencies
+      # Step 4: Install Expo CLI
+      - name: Install Expo CLI
+        run: npm install -g expo-cli
+
+      # Step 5: Install Expo Dependencies
+      - name: Install Expo Dependencies
         run: |
           cd frontend
-          npm install
+          npx expo install
 
-      # Step 5: Install Expo CLI globally
-      - name: Install Expo CLI
-        run: |
-          npm install -g expo-cli
-
-      # Step 6: Start Expo in Web Mode to check for issues
+      # Step 6: Start Expo in Web Mode
       - name: Start Expo in Web Mode
         run: |
           cd frontend
-          expo start --web
+          npx expo start --web
 
       # Optional Step 7: Run frontend tests if defined
       - name: Run Expo Tests
