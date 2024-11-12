@@ -52,37 +52,31 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+          cache: 'yarn'
 
       # Step 3: Verify Node.js version
       - name: Verify Node.js version
         run: node --version
 
-      # Step 4: Remove npm lock file
+      # Step 4: Clear and remove conflicting lock file
       - name: Remove npm lock file
         run: |
           cd frontend
           rm -f package-lock.json
 
-      # Step 5: Cache Yarn dependencies
-      - name: Cache Yarn packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/yarn
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      # Step 6: Install Expo Dependencies
+      # Step 5: Install Expo Dependencies with Yarn
       - name: Install Expo Dependencies
         run: |
           cd frontend
           yarn install
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
 
-      # Step 7: Install Expo CLI
+      # Step 6: Install Expo CLI
       - name: Install Expo CLI
         run: yarn global add expo-cli
 
-      # Step 8: Start Expo in Web Mode
+      # Step 7: Start Expo in Web Mode
       - name: Start Expo in Web Mode
         run: |
           cd frontend
