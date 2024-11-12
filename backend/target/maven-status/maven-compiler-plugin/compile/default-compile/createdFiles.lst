@@ -1,0 +1,10 @@
+com\ssw695\finalproject\what2wear\login\LoginDto.class
+com\ssw695\finalproject\what2wear\repository\UserDataRepository.class
+com\ssw695\finalproject\what2wear\services\FirebaseService.class
+com\ssw695\finalproject\what2wear\controller\AuthControllerFirebase.class
+com\ssw695\finalproject\what2wear\security\FirebaseConfig.class
+com\ssw695\finalproject\what2wear\services\UserService.class
+com\ssw695\finalproject\what2wear\What2wearApplication.class
+com\ssw695\finalproject\what2wear\controller\AuthController.class
+com\ssw695\finalproject\what2wear\registration\UserRegistrationDto.class
+com\ssw695\finalproject\what2wear\user\User.class
