@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Alert } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Alert, Modal, Button, Dimensions, } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { Modalize } from 'react-native-modalize';
 import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -10,7 +10,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthUser } from '@/globalUserStorage';
 
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 
@@ -40,6 +40,22 @@ interface SearchBarProps {
     );
   };
 
+// Define types for outfit and style board
+type Outfit = {
+    id: string;
+    imageUrl: string;
+    name: string;
+  };
+  
+  
+  interface StyleBoard {
+    id: string;
+    name: string;
+    outfits: Outfit[];
+  }
+
+  
+
 export default function WardrobeScreen() {
   const [activeView, setActiveView] = useState('inventory');
   const modalizeRef = useRef<Modalize>(null); // Ref for the bottom sheet menu
@@ -65,10 +81,25 @@ export default function WardrobeScreen() {
   const user =useAuthUser();
   const userDisplayName = user?.displayName || 'User Name';
 
+  // For style boards and choosing outfits for a new one
+  const [isOutfitModalVisible, setOutfitModalVisible] = useState(false);
+  const [isNameModalVisible, setNameModalVisible] = useState(false);
+  // const [selectedOutfits, setSelectedOutfits] = useState<string[]>([]);
+  const [selectedOutfits, setSelectedOutfits] = useState<Outfit[]>([]);
+  const [outfitData, setOutfitData] = useState<any[]>([]);
+  const [styleBoardName, setStyleBoardName] = useState('');
+  const db = getFirestore();
+  const auth = getAuth();
+  const userId = auth.currentUser?.uid;
+
   // State variables for search bars
   const [searchInventory, setSearchInventory] = useState('');
   const [searchOutfits, setSearchOutfits] = useState('');
-  const [searchStyleBoards, setSearchStyleBoards] = useState('');
+  const [styleBoards, setStyleBoards] = useState<StyleBoard[]>([]);
+  const [searchStyleBoards, setSearchStyleBoards] = useState<string>('');
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedStyleBoard, setSelectedStyleBoard] = useState<StyleBoard | null>(null);
+
 
   const [wardrobeItems, setWardrobeItems] = useState<any[]>([]); // State for fetched wardrobe items
   const [outfits, setOutfits] = useState<any[]>([]); // State for fetched outfits
@@ -224,8 +255,43 @@ export default function WardrobeScreen() {
         }
     };
     fetchOutfits();
-}, []);  // This will run once when the component mounts
+  }, []);  // This will run once when the component mounts
 
+  // Fetch style boards from Firestore
+  useEffect(() => {
+    const fetchStyleBoards = async () => {
+      const db = getFirestore();
+      const user = auth.currentUser; 
+  
+      if (!user) {
+        console.log('User not logged in!');
+        return;
+      }
+  
+      try {
+        // Reference the user's "styleBoards" collection
+        const styleBoardsRef = collection(db, `users/${user.uid}/styleBoards`);
+        const querySnapshot = await getDocs(styleBoardsRef);
+  
+        // Map Firestore documents to a style boards array
+        const styleBoardsData: StyleBoard[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as StyleBoard[];
+  
+        setStyleBoards(styleBoardsData);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error fetching style boards:', error.message);
+        } else {
+          console.error('An unknown error occurred.');
+        }
+      }
+    };
+  
+    fetchStyleBoards();
+  }, []);
+  
 
   const handleImagePress = (item: any) => {
     // Set the selected item and open the modal
@@ -337,6 +403,176 @@ export default function WardrobeScreen() {
     </Modalize>
   );
 
+  // Modal component for fetching outfits for new style board
+  const fetchOutfitsForNewBoard = async () => {
+    if (!userId) return;
+
+    const outfitsRef = collection(db, `users/${userId}/outfits`);
+    const outfitsSnapshot = await getDocs(outfitsRef);
+    const outfitsList = outfitsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    setOutfitData(outfitsList);
+  };
+
+// Toggle outfit selection
+const toggleOutfitSelection = (outfit: Outfit) => {
+    // Check if outfit is already selected
+    const isSelected = selectedOutfits.some(selectedOutfit => selectedOutfit.id === outfit.id);
+  
+    if (isSelected) {
+      // If selected, remove from selectedOutfits
+      setSelectedOutfits(selectedOutfits.filter(selectedOutfit => selectedOutfit.id !== outfit.id));
+    } else {
+      // If not selected, add to selectedOutfits
+      setSelectedOutfits([...selectedOutfits, outfit]);
+    }
+  };
+  
+  
+
+// Function to create and store a new style board
+const handleCreateStyleBoard = async () => {
+    // Ensure a name is provided for the style board
+    if (!styleBoardName.trim()) {
+      alert('Please enter a name for the style board.');
+      return;
+    }
+
+    // Ensure selected outfits is not empty
+    if (selectedOutfits.length === 0) {
+      alert('Please select at least one outfit');
+      return;
+    }
+  
+    // Get Firestore instance and current user
+    const db = getFirestore();
+    const user = auth.currentUser; 
+
+    if (!user) {
+        alert('User not logged in!');
+        return;
+      }
+
+    // Prepare the style board data
+    const styleBoardData = {
+      name: styleBoardName,  // Custom name entered by the user
+      outfits: selectedOutfits.map(outfit => ({
+        id: outfit.id,
+        imageUrl: outfit.imageUrl, // we need the URL in order to display the outfit image
+        name: outfit.name,
+      }))
+    };
+  
+    // Add the new style board to Firestore
+    try {
+      // Reference the user's "styleBoards" collection
+      const styleBoardsRef = collection(db, `users/${user.uid}/styleBoards`);
+    
+      const docRef = await addDoc(styleBoardsRef, styleBoardData);
+      console.log('Style board created with ID:', docRef.id); // Logging for testing purposes
+      alert('Style board created successfully!');
+      setSelectedOutfits([]);  // Clear selected outfits after creation
+      setStyleBoardName('');  // Clear the style board name field
+      setNameModalVisible(false); // Close the modal
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert('Error creating style board: ' + error.message);
+      } else {
+        alert('An unknown error occurred.');
+      }
+    }
+  };
+  
+
+  const renderStyleBoardItem = ({ item }: { item: StyleBoard }) => (
+    <TouchableOpacity
+      style={styles.styleBoardItem}
+      onPress={() => handleSelectStyleBoard(item)}
+    >
+      <View style={styles.imageContainer}>
+        {item.outfits.slice(0, 2).map((outfit, index) => (
+          <React.Fragment key={index}>
+            <Image
+              source={{ uri: outfit.imageUrl }}
+              style={styles.styleBoardImage}
+            />
+            {index === 0 && item.outfits.length > 1 && (
+              <View style={styles.imageSeparator} />
+            )}
+          </React.Fragment>
+        ))}
+        {item.outfits.length === 0 && (
+          <View style={styles.placeholder}>
+            <Text style={styles.placeholderText}>No Image</Text>
+          </View>
+        )}
+      </View>
+      <Text style={styles.styleBoardName}>{item.name || 'Unnamed Board'}</Text>
+    </TouchableOpacity>
+  );
+  
+  // StyleBoardModal Component
+  const StyleBoardModal = () => (
+    <Modal
+      visible={isModalVisible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={closeModal}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+          {selectedStyleBoard && (
+            <>
+              <Text style={styles.modalTitle}>{selectedStyleBoard.name}</Text>
+              <FlatList
+                data={selectedStyleBoard.outfits}
+                keyExtractor={(item, index) => `${item.id || index}`}
+                renderItem={renderOutfitItem}
+                contentContainerStyle={styles.outfitList}
+              />
+            </>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+  
+  
+    // Function to handle selecting a style board to view its contents
+    const handleSelectStyleBoard = (styleBoard: StyleBoard) => {
+        setSelectedStyleBoard(styleBoard);
+        setIsModalVisible(true);
+      };
+
+    // Function to close the modal
+    const closeModal = () => {
+      setIsModalVisible(false);
+      setSelectedStyleBoard(null);
+    };
+
+
+  // Render each outfit item in the modal
+  const renderOutfitItem = ({ item }: { item: Outfit }) => (
+    <View style={styles.outfitItem}>
+      {item.imageUrl ? (
+        <>
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={styles.outfitOptionsImage}
+          />
+          <Text style={styles.outfitName}>{item.name || 'Unnamed Outfit'}</Text>
+        </>
+      ) : (
+        <Text>No Image Available</Text>
+      )}
+    </View>
+  );
+  
   
   // Rendering the inventory view
   const renderInventoryView = () => (
@@ -400,8 +636,20 @@ export default function WardrobeScreen() {
 
   {/* Rendering the style boards view */}
   const renderStyleBoardsView = () => (
-    <View>
-        <SearchBar value={searchStyleBoards} onChange={setSearchStyleBoards} placeholder="Search your style boards..."/>
+    <View style={styles.styleBoardsContainer}>
+      <SearchBar value={searchStyleBoards} onChange={setSearchStyleBoards} placeholder="Search your style boards..."/>
+      
+      <ScrollView>
+        <View style={styles.gridContainer}>
+        <FlatList
+          data={styleBoards}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.styleBoardList}
+          renderItem={renderStyleBoardItem}
+        />
+        </View>
+      </ScrollView>
     </View>
   );
 
@@ -507,7 +755,7 @@ export default function WardrobeScreen() {
             <TouchableOpacity style={styles.menuOptionButton} onPress={handleCreateNewOutfit}>
               <Text style={styles.menuOptionText}>Create a New Outfit</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuOptionButton}>
+            <TouchableOpacity style={styles.menuOptionButton} onPress={() => { setOutfitModalVisible(true); fetchOutfitsForNewBoard(); }}>
               <Text style={styles.menuOptionText}>Create a New Style Board</Text>
             </TouchableOpacity>
           </View>
@@ -638,6 +886,86 @@ export default function WardrobeScreen() {
 
             <ItemDetailsModal />
             <OutfitDetailsModal />
+        
+      {/* Outfit Selection Modal */}
+      <Modal
+        visible={isOutfitModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setOutfitModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Create New Style Board</Text>
+            
+            {/* Style Board Name Input */}
+            <TextInput
+              style={styles.input}
+              placeholder="Enter a style board name..."
+              placeholderTextColor={'#898989'}
+              value={styleBoardName}
+              onChangeText={setStyleBoardName}
+            />
+            
+            {/* Outfits List */}
+            <FlatList
+                data={outfits}
+                keyExtractor={(item) => item.id}
+                numColumns={2}
+                contentContainerStyle={styles.outfitList}
+                renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.outfitItem,
+                        selectedOutfits.some(selectedOutfit => selectedOutfit.id === item.id) && styles.selectedOutfitItem
+                      ]}
+                      onPress={() => toggleOutfitSelection(item)} // Pass the full outfit object here
+                    >
+                      <Image source={{ uri: item.imageUrl }} style={styles.outfitOptionsImage} />
+                      <Text style={styles.outfitName}>{item.name}</Text>
+                    </TouchableOpacity>
+                )}
+            />
+
+
+            {/* Create Style Board Button */}
+            <TouchableOpacity style={styles.addButton} onPress={handleCreateStyleBoard}>
+              <Text style={styles.addButtonText}>Create New Style Board</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setOutfitModalVisible(false)}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Style Boards deatils modal to display outfit contents */}
+      <Modal
+      visible={isModalVisible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={closeModal}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+          {selectedStyleBoard && (
+            <>
+              <Text style={styles.modalTitle}>{selectedStyleBoard.name}</Text>
+              <FlatList
+                data={selectedStyleBoard.outfits}
+                keyExtractor={(item, index) => `${item.id || index}`}
+                renderItem={renderOutfitItem}
+                contentContainerStyle={styles.outfitList}
+              />
+            </>
+          )}
+        </View>
+      </View>
+    </Modal>
+      
 
         </View>
     </GestureHandlerRootView>
@@ -941,7 +1269,7 @@ const styles = StyleSheet.create({
     margin: 15, // Add margin for spacing of images 
     borderWidth: 3, 
     borderColor: 'black', 
-    borderRadius: 5, 
+    borderRadius: 10, 
   },
   wardrobeOutfitsImage: {
     width: '50%', // Adjust width to fit two images in a row with spacing
@@ -951,7 +1279,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 3, 
     borderColor: 'black', 
-    borderRadius: 5,
+    borderRadius: 10,
     resizeMode: 'contain',  // Ensures the entire image fits within the container 
   },
   itemName: {
@@ -988,6 +1316,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 30,
   },
+  outfitOptionsImage: {
+    width: 30,
+    height: 200,
+    borderRadius: 10,
+    marginTop: 30,
+  },
+  outfitList: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '100%',
+  },
   outfitDeleteButton: {
     marginTop: -80,
     padding: 10,
@@ -1009,6 +1348,144 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginVertical: 10,
+},
+selectedOutfitItem: { backgroundColor: '#cceeff' },
+addButton: {
+  backgroundColor: '#3dc8ff',
+  padding: 15,
+  borderRadius: 5,
+  alignItems: 'center',
+  marginTop: 20,
+},
+addButtonText: { color: '#fff', fontSize: 16 },
+input: {
+  height: 40,
+  borderColor: '#ccc',
+  borderWidth: 1,
+  padding: 10,
+  marginBottom: 20,
+  borderRadius: 5,
+},
+modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+},
+  modalTitle: { 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    color: '#333', 
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  outfitItem: {
+    width: '45%',
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    marginBottom: 10,
+    marginLeft: 10,
+    backgroundColor: '#f9f9f9',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    height: Dimensions.get('window').height * 0.90,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+    width: '30%',
+  },
+  cancelButtonText: {
+    color: 'red',
+    marginTop: 10,
+  },
+  styleBoardsContainer: {
+    padding: 10,
+  },
+  styleBoardList: {
+    paddingVertical: 10,
+    paddingBottom: 220,
+  },
+  styleBoardItem: {
+    width: '39%',
+    height: 250,
+    aspectRatio: 0.8,
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    margin: 20,
+    marginBottom: 40,
+    borderWidth: 3,
+    borderColor: 'black',
+    borderRadius: 10,
+    resizeMode: 'cover',  // Ensures the entire image fits within the container 
+  },
+  styleBoardImage: {
+    width: '20%',
+    height: 215,
+    borderRadius: 5,
+    marginBottom: -35,
+    resizeMode: 'cover',
+  },
+  imageSeparator: {
+    width: 2, 
+    backgroundColor: '#898989', 
+    height: '70%', 
+  },
+  styleBoardName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  outfitGrid: {
+    paddingVertical: 10,
+  },
+  placeholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e0e0e0', 
+    width: '48%', // Match image width
+    height: 100, // Match image height
+    borderRadius: 8,
+  },
+  imageContainer: {
+    flexDirection: 'row', // Arrange images side-by-side
+    justifyContent: 'space-between', // Space out the images
+    alignItems: 'center',
+    marginBottom: 10, // Space between images and the name
+    width: '100%',
+    paddingHorizontal: 0,
+  },
+  closeButton: {
+    alignSelf: 'flex-end',
+    padding: 8,
+  },
+  closeButtonText: {
+    color: '#007BFF',
+    fontSize: 16,
   },
   
 });
