@@ -13,7 +13,7 @@ export default function RootLayout() {
     if (!initialized) return; // wait until this is  initialized
     
     if (!isLoggedIn) {
-      router.replace("/auth/SigninforWhat2Wear");
+      router.replace("/auth/SigninforWhat2Wear" as any);
     } else {
       router.replace("/(tabs)");
     }

@@ -220,10 +220,7 @@ const router = useRouter();
               <Text style={styles.linkText}>Forgot Password?</Text>
             </TouchableOpacity>
             <TouchableOpacity>
-              <Link href="/auth/SignupforWhat2Wear">
-              
-              <Text style={styles.linkText}>New to What2Wear? Sign up</Text>
-              </Link>
+            <Link href={"/auth/SignupforWhat2Wear" as any}>New to What2Wear? Sign Up</Link>
             </TouchableOpacity>
           </View>
         </Animated.View>
