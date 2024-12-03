@@ -46,8 +46,8 @@ jobs:
 
     steps:
       # Step 1: Checkout code
-        - name: Checkout code
-          uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       # Step 2: Set up Node.js
       - name: Set up Node.js
@@ -81,7 +81,7 @@ jobs:
           cd frontend
           expo doctor --fix-dependencies
 
-      # Step 7: Start Expo in Development Mode (for Expo Go)
+      # Step 7: Start Expo in Development Mode
       - name: Start Expo in Development Mode
         run: |
           cd frontend
