@@ -3,12 +3,11 @@ name: What2Wear CI/CD Pipeline
 on:
   push:
     branches:
-      - main
-      - meghana  # Added meghana branch
+      - meghana1  # Added meghana branch
   pull_request:
     branches:
       - main
-      - meghana  # Added meghana branch
+      - meghana1  # Added meghana branch
 
 jobs:
   build_backend:
