@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      -meghana
   pull_request:
     branches:
       - main
+      -meghana
 
 jobs:
   build:
