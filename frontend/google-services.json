@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "261272407550",
+    "project_id": "what2wear-be847",
+    "storage_bucket": "what2wear-be847.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261272407550:android:9ead077b6870d589df04af",
+        "android_client_info": {
+          "package_name": "com.amandazambrana.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHdX4Ii6velAs-efzXY1mNwyE6kXquPVA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

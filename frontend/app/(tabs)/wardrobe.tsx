@@ -572,6 +572,52 @@ const handleCreateStyleBoard = async () => {
       )}
     </View>
   );
+
+  // function to confirm style board deletion 
+  const confirmDeleteStyleBoard = (styleBoardId: string) => {
+    Alert.alert(
+      "Are you sure?",
+      "Do you really want to delete this style board? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Style board deletion canceled"),
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: () => deleteStyleBoard(styleBoardId),
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
+  // function to delete a style board
+  const deleteStyleBoard = async (styleBoardId: string) => {
+    try {
+      const db = getFirestore();
+      const userId = getAuth().currentUser?.uid;
+  
+      if (!userId) {
+        throw new Error("User is not logged in");
+      }
+  
+      // Delete the style board document
+      await deleteDoc(doc(db, `users/${userId}/styleBoards`, styleBoardId));
+  
+      // Update local state
+      setStyleBoards(styleBoards.filter(board => board.id !== styleBoardId));
+  
+      // Notify success and close the modal
+      Alert.alert("Success", "Style board deleted successfully!");
+      closeModal();
+    } catch (error) {
+      console.error("Error deleting style board:", error);
+      Alert.alert("Error", "Failed to delete style board.");
+    }
+  };
+  
   
   
   // Rendering the inventory view
@@ -960,6 +1006,13 @@ const handleCreateStyleBoard = async () => {
                 renderItem={renderOutfitItem}
                 contentContainerStyle={styles.outfitList}
               />
+              {/* Delete Button */}
+              <TouchableOpacity
+                onPress={() => confirmDeleteStyleBoard(selectedStyleBoard.id)}
+                style={styles.boardDeleteButton}
+              >
+                <Text style={styles.deleteButtonText}>Delete Style Board</Text>
+              </TouchableOpacity>
             </>
           )}
         </View>
@@ -1343,6 +1396,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+  boardDeleteButton: {
+    marginTop: -80,
+    padding: 10,
+    backgroundColor: 'red',
+    borderRadius: 5,
+  },
   itemDetails: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -1427,7 +1486,7 @@ modalContainer: {
   styleBoardItem: {
     width: '39%',
     height: 250,
-    aspectRatio: 0.8,
+    aspectRatio: 0.6,
     alignItems: 'center',
     paddingHorizontal: 10,
     margin: 20,
