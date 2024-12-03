@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "22aededc-8d34-4ce0-8bc5-afed04e54cda"
+      }
+    },
+    "android": {
+      "package": "com.sidhdhuk747.what2wear"
+    }
+  }
+}
