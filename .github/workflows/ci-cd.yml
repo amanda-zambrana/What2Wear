@@ -80,15 +80,21 @@ jobs:
         - name: Run Expo Doctor
           run: |
             cd frontend
-            npx expo-doctor --fix-dependencies  # Using npx to fix dependencies
+            npx expo-doctor
 
-      # Step 7: Start Expo in Development Mode
+      # Step 7: Run Expo Install to fix any issues
+        - name: Fix dependencies using Expo Install
+          run: |
+            cd frontend
+            npx expo install
+
+      # Step 8: Start Expo in Development Mode
         - name: Start Expo in Development Mode
           run: |
             cd frontend
             expo start --non-interactive  # Will focus on Expo Go for mobile testing
 
-      # Optional Step 8: Run frontend tests if defined
+      # Optional Step 9: Run frontend tests if defined
         - name: Run Frontend Tests
           run: |
             cd frontend
