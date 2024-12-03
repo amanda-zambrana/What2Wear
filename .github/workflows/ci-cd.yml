@@ -46,62 +46,62 @@ jobs:
 
     steps:
       # Step 1: Checkout code
-        - name: Checkout code
-          uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       # Step 2: Set up Node.js (Node 18 recommended for Expo)
-        - name: Set up Node.js
-          uses: actions/setup-node@v3
-          with:
-            node-version: '18'  # Use Node 18 for better compatibility
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'  # Use Node 18 for better compatibility with Expo SDK
 
       # Step 3: Cache npm dependencies
-        - name: Cache npm packages
-          uses: actions/cache@v3
-          with:
-            path: ~/.npm
-            key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
-            restore-keys: |
-              ${{ runner.os }}-node-
+      - name: Cache npm packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       # Step 4: Install dependencies for the frontend
-        - name: Install Frontend Dependencies
-          run: |
-            cd frontend
-            npm install
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm install
 
       # Step 5: Install Expo CLI globally
-        - name: Install Expo CLI
-          run: |
-            cd frontend
-            npm install -g expo-cli
+      - name: Install Expo CLI
+        run: |
+          cd frontend
+          npm install -g expo-cli
 
       # Step 6: Install `undici` polyfill to resolve `fetch` issue
-        - name: Install Undici polyfill
-          run: |
-            cd frontend
-            npm install undici
+      - name: Install Undici polyfill
+        run: |
+          cd frontend
+          npm install undici
 
       # Step 7: Run Expo Doctor to check for dependency issues
-        - name: Run Expo Doctor
-          run: |
-            cd frontend
-            npx expo-doctor
+      - name: Run Expo Doctor
+        run: |
+          cd frontend
+          npx expo-doctor
 
-      # Step 8: Run Expo Install to fix any issues
-        - name: Fix dependencies using Expo Install
-          run: |
-            cd frontend
-            npx expo install
+      # Step 8: Run Expo Install to fix any dependency issues
+      - name: Fix dependencies using Expo Install
+        run: |
+          cd frontend
+          npx expo install
 
-      # Step 9: Start Expo in Development Mode
-        - name: Start Expo in Development Mode
-          run: |
-            cd frontend
-            expo start --non-interactive  # Will focus on Expo Go for mobile testing
+      # Step 9: Start Expo in Development Mode (for Expo Go testing)
+      - name: Start Expo in Development Mode
+        run: |
+          cd frontend
+          expo start --non-interactive  # Will focus on Expo Go for mobile testing
 
       # Optional Step 10: Run frontend tests if defined
-        - name: Run Frontend Tests
-          run: |
-            cd frontend
-            npm test
+      - name: Run Frontend Tests
+        run: |
+          cd frontend
+          npm test
