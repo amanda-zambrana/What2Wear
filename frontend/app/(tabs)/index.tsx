@@ -484,10 +484,10 @@ export default function Index() {
             <Text style={styles.actionButtonText}>Create a New Outfit</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
-            <Text style={styles.actionButtonText}>Choose from Outfits</Text>
+            <Text style={styles.actionButtonText}>Browse Outfits</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
-            <Text style={styles.actionButtonText}>Choose from Style Boards</Text>
+            <Text style={styles.actionButtonText}>Browse Style Boards</Text>
           </TouchableOpacity>
         </View>
 
