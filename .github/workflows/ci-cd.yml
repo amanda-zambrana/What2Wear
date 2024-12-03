@@ -1,107 +1,52 @@
-name: What2Wear CI/CD Pipeline
+name: Build and Test Backend
 
 on:
   push:
     branches:
       - main
-      - meghana  # Added meghana branch
   pull_request:
     branches:
       - main
-      - meghana  # Added meghana branch
 
 jobs:
-  build_backend:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      # Step 2: Set up JDK 17
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          java-version: '11'
 
-      # Step 3: Cache Maven dependencies
-      - name: Cache Maven packages
-        uses: actions/cache@v3
+      # Step to set Firebase credentials from the GitHub secret
+      - name: Set up Firebase credentials
+        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $GITHUB_ENV
+
+      # Cache Gradle dependencies
+      - name: Set up Gradle Cache
+        uses: actions/cache@v2
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: |
-            ${{ runner.os }}-maven-
+            ${{ runner.os }}-gradle-
 
-      # Step 4: Build and Test Backend with Debug Logging
-      - name: Build and Test Backend
+      # Install dependencies and run tests
+      - name: Install dependencies
         run: |
           cd backend
-          mvn clean install test -e -X
+          ./mvnw install
 
-  build_frontend:
-    runs-on: ubuntu-latest
+      - name: Run tests
+        run: |
+          cd backend
+          ./mvnw test
 
-    steps:
-      # Step 1: Checkout code
-        - name: Checkout code
-          uses: actions/checkout@v3
-
-      # Step 2: Set up Node.js (Node 18 recommended for Expo)
-        - name: Set up Node.js
-          uses: actions/setup-node@v3
-          with:
-            node-version: '18'  # Use Node 18 for better compatibility
-
-      # Step 3: Cache npm dependencies
-        - name: Cache npm packages
-          uses: actions/cache@v3
-          with:
-            path: ~/.npm
-            key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
-            restore-keys: |
-              ${{ runner.os }}-node-
-
-      # Step 4: Install dependencies for the frontend
-        - name: Install Frontend Dependencies
-          run: |
-            cd frontend
-            npm install
-
-      # Step 5: Install Expo CLI globally
-        - name: Install Expo CLI
-          run: |
-            cd frontend
-            npm install -g expo-cli
-
-      # Step 6: Install `undici` polyfill to resolve `fetch` issue
-        - name: Install Undici polyfill
-          run: |
-            cd frontend
-            npm install undici
-
-      # Step 7: Run Expo Doctor to check for dependency issues
-        - name: Run Expo Doctor
-          run: |
-            cd frontend
-            npx expo-doctor
-
-      # Step 8: Run Expo Install to fix any issues
-        - name: Fix dependencies using Expo Install
-          run: |
-            cd frontend
-            npx expo install
-
-      # Step 9: Start Expo in Development Mode
-        - name: Start Expo in Development Mode
-          run: |
-            cd frontend
-            expo start --non-interactive  # Will focus on Expo Go for mobile testing
-
-      # Optional Step 10: Run frontend tests if defined
-        - name: Run Frontend Tests
-          run: |
-            cd frontend
-            npm test
+      # Build and run the Spring Boot application
+      - name: Build and run the Spring Boot application
+        run: |
+          cd backend
+          ./mvnw spring-boot:run
