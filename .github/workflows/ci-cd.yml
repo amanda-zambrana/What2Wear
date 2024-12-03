@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-      -meghana
+      - meghana  # Fixed the typo here
   pull_request:
     branches:
       - main
-      -meghana
+      - meghana  # Fixed the typo here
 
 jobs:
   build:
