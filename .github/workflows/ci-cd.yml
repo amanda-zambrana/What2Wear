@@ -4,15 +4,15 @@ on:
   push:
     branches:
       - main
-      - meghana  # Fixed the typo here
+      - meghana
   pull_request:
     branches:
       - main
-      - meghana  # Fixed the typo here
+      - meghana
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Explicitly set the Ubuntu version
 
     steps:
       - name: Checkout code
@@ -29,12 +29,12 @@ jobs:
 
       # Cache Gradle dependencies
       - name: Set up Gradle Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3  # Update to the latest version
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            gradle-${{ runner.os }}-
 
       # Install dependencies and run tests
       - name: Install dependencies
