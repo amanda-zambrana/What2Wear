@@ -46,49 +46,50 @@ jobs:
 
     steps:
       # Step 1: Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
+        - name: Checkout code
+          uses: actions/checkout@v3
 
       # Step 2: Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
+        - name: Set up Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: '16'
 
       # Step 3: Cache npm dependencies
-      - name: Cache npm packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+        - name: Cache npm packages
+          uses: actions/cache@v3
+          with:
+            path: ~/.npm
+            key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
+            restore-keys: |
+              ${{ runner.os }}-node-
 
       # Step 4: Install dependencies for the frontend
-      - name: Install Frontend Dependencies
-        run: |
-          cd frontend
-          npm install
+        - name: Install Frontend Dependencies
+          run: |
+            cd frontend
+            npm install
 
       # Step 5: Install Expo CLI globally
-      - name: Install Expo CLI
-        run: |
-          npm install -g expo-cli
+        - name: Install Expo CLI
+          run: |
+            cd frontend
+            npm install -g expo-cli
 
       # Step 6: Run Expo Doctor to check for dependency issues
-      - name: Run Expo Doctor
-        run: |
-          cd frontend
-          npx expo-doctor --fix-dependencies  # Correctly fix dependencies with expo-doctor
+        - name: Run Expo Doctor
+          run: |
+            cd frontend
+            npx expo-doctor --fix-dependencies  # Using npx to fix dependencies
 
       # Step 7: Start Expo in Development Mode
-      - name: Start Expo in Development Mode
-        run: |
-          cd frontend
-          expo start --non-interactive  # Will focus on Expo Go for mobile testing
+        - name: Start Expo in Development Mode
+          run: |
+            cd frontend
+            expo start --non-interactive  # Will focus on Expo Go for mobile testing
 
       # Optional Step 8: Run frontend tests if defined
-      - name: Run Frontend Tests
-        run: |
-          cd frontend
-          npm test
+        - name: Run Frontend Tests
+          run: |
+            cd frontend
+            npm test
