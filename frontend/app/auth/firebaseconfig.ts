@@ -1,7 +1,7 @@
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 //@ts-ignore
-import { initializeAuth, getReactNativePersistence } from '@firebase/auth/dist/rn';
+import { initializeAuth, getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
 //import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";

@@ -23,7 +23,6 @@ import {auth} from './firebaseconfig';
 import {createUserWithEmailAndPassword} from 'firebase/auth' ;
 import { appSignUp } from '@/globalUserStorage';
 import { useAuthUser } from '@/globalUserStorage';
-
 const SignUpPage: React.FC = () => { 
 
   const [username, setUsername] = useState(''); //hpld userna,e
@@ -220,7 +219,7 @@ const SignUpPage: React.FC = () => {
         </ScrollView>
       </SafeAreaView>
     </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
 
   );
 };
