@@ -79,7 +79,7 @@ jobs:
       - name: Run Expo Doctor
         run: |
           cd frontend
-          npx expo-doctor --fix-dependencies  # Updated command for SDK 46+
+          npx expo-doctor --fix-dependencies  # Correctly fix dependencies with expo-doctor
 
       # Step 7: Start Expo in Development Mode
       - name: Start Expo in Development Mode
