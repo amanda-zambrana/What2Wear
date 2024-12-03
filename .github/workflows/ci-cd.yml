@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - meghana  # Added meghana branch
   pull_request:
     branches:
       - main
+      - meghana  # Added meghana branch
 
 jobs:
   build_backend:
