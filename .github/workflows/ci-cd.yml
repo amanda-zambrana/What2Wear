@@ -1,4 +1,4 @@
-name: What2Wear CI/CD Pipeline
+name: Backend Build
 
 on:
   push:
