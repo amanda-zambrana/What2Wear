@@ -28,6 +28,13 @@ interface SearchBarProps {
     placeholder: string; // Type for the placeholder prop
   }
 
+  interface WardrobeItem {
+    id: string;
+    imageUrl: string;
+    name: string;
+    category: string; // Define category as an array of strings
+  }
+  
   const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, placeholder }) => {
     return (
       <TextInput
@@ -207,7 +214,7 @@ export default function WardrobeScreen() {
      }
   };
 
-  const buttonNames = ['All', 'Outerwear', 'Tops', 'Bottoms ', 'Footwear ', 'Accessories '];
+  const buttonNames = ['All', 'Outerwear', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
   
   // Fetching the wardrobe items from Firestore for inventory browsing 
   useEffect(() => {
@@ -618,27 +625,116 @@ const handleCreateStyleBoard = async () => {
     }
   };
   
-  
-  
+  // constants for the inventory filter buttons
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('All'); // state for selected category filter 
+  const [filterItemCategory, setFilteredItemCategory] = useState<string>('All');
+
+
+  // Function to handle button click and filter items
+  const handleFilterChange = (category: string) => {
+    const lowerCaseCategory = category.toLowerCase();
+    console.log("Selected Category:", lowerCaseCategory);
+
+    setSelectedCategoryFilter(category);
+
+    if (lowerCaseCategory === 'all') {
+        console.log("Showing all items");
+        setFilteredItems(wardrobeItems); // Show all items
+    } else {
+        const filtered = wardrobeItems.filter((item: WardrobeItem) => {
+            const itemCategoryLower = item.category.toLowerCase(); // New line to ensure case-insensitivity
+            console.log("Item Category:", itemCategoryLower); // Debugging log
+            return itemCategoryLower === lowerCaseCategory;
+        });
+        console.log("Filtered Items:", filtered); // Debugging log
+        setFilteredItems(filtered);
+    }
+};
+
+
+
+  // constants for search bars 
+  const [filteredItems, setFilteredItems] = useState(wardrobeItems); // State for filtered items
+  const [filteredOutfits, setFilteredOutfits] = useState(outfits); // state for filtered outfits
+  const [filteredStyleBoards, setFilteredStyleBoards] = useState(styleBoards); // State for filtered style boards
+
+
+  // Effect to filter outfits as search query changes
+  useEffect(() => {
+    const filtered = outfits.filter(outfit =>
+      outfit.name.toLowerCase().includes(searchOutfits.toLowerCase())
+    );
+    setFilteredOutfits(filtered);
+  }, [searchOutfits, outfits]);
+
+
+  // Effect to filter style boards as search query changes
+  useEffect(() => {
+    const filtered = styleBoards.filter(styleBoard =>
+      styleBoard.name.toLowerCase().includes(searchStyleBoards.toLowerCase())
+    );
+    setFilteredStyleBoards(filtered);
+  }, [searchStyleBoards, styleBoards]);
+
+  // Combined state for inventory view filter by category + search bar
+  const [finalFilteredItems, setFinalFilteredItems] = useState<WardrobeItem[]>([]);
+
+  // Combined effect to filter based on filterItemCategory and searchInventory
+  useEffect(() => {
+    console.log("Filtering with category:", filterItemCategory, "and search query:", searchInventory);
+
+    const combinedFiltered = wardrobeItems.filter((item: WardrobeItem) => {
+        const matchesCategory = filterItemCategory === 'All' || 
+            item.category.toLowerCase() === filterItemCategory.toLowerCase();
+        const matchesSearch = item.name.toLowerCase().includes(searchInventory.toLowerCase());
+        return matchesCategory && matchesSearch;
+    });
+
+    console.log("Final Filtered Items:", combinedFiltered);
+    setFinalFilteredItems(combinedFiltered);
+}, [wardrobeItems, filterItemCategory, searchInventory]);
+
+
+// for synchronizing filteredItems when wardrobeItems or selectedCategoryFilter changes 
+useEffect(() => {
+    if (selectedCategoryFilter.toLowerCase() === 'all') {
+        setFilteredItems(wardrobeItems); // Show all items when "All" is selected
+    } else {
+        const lowerCaseCategory = selectedCategoryFilter.toLowerCase();
+        const filtered = wardrobeItems.filter((item: WardrobeItem) => {
+            const itemCategoryLower = item.category.toLowerCase(); // Case-insensitive check
+            return itemCategoryLower === lowerCaseCategory;
+        });
+        setFilteredItems(filtered);
+    }
+}, [wardrobeItems, selectedCategoryFilter]); // Run when wardrobeItems or filter changes
+
+
+
   // Rendering the inventory view
   const renderInventoryView = () => (
     <View>
         {/* Circular buttons for filtering options */}
         <View style={styles.circularButtonContainer}>
             {buttonNames.map((buttonName, index) => (
-                <TouchableOpacity key={index} style={styles.circularButton}>
+                <TouchableOpacity key={index} style={[styles.circularButton,
+                    selectedCategoryFilter === buttonName ? styles.activeButton : null, // Add active button style if selected
+                    ]}
+                    onPress={() => handleFilterChange(buttonName)}
+                >
                     <Text style={styles.buttonLabel}>{buttonName}</Text>
                 </TouchableOpacity>
             ))}
         </View>
 
         <SearchBar value={searchInventory} onChange={setSearchInventory} placeholder="Search your inventory..."/>
-
+        
         {/* Displaying the fetched user wardrobe inventory items */}
         <ScrollView>
           <View style={styles.gridContainer}>
             <FlatList
-              data={wardrobeItems}
+              data={filteredItems.length > 0 ? filteredItems : wardrobeItems}
+              //data={finalFilteredItems} // using finalFilteredItems for combined filtering forr categories and search bar 
               renderItem={({ item }) => (
                 <TouchableOpacity onPress={() => handleImagePress(item)}>
                     <Image source={{ uri: item.imageUrl }} style={styles.wardrobeImage}/>
@@ -663,7 +759,7 @@ const handleCreateStyleBoard = async () => {
         <ScrollView>
             <View style={styles.gridContainer}>
                 <FlatList
-                    data={outfits}
+                    data={filteredOutfits} // using filteredOutfits here instead of outfits for the search funcationality 
                     renderItem={({ item }) => (
                         <TouchableOpacity onPress={() => handleOutfitPress(item)}>
                             <Image source={{ uri: item.imageUrl }} style={styles.wardrobeOutfitsImage} />
@@ -688,7 +784,7 @@ const handleCreateStyleBoard = async () => {
       <ScrollView>
         <View style={styles.gridContainer}>
         <FlatList
-          data={styleBoards}
+          data={filteredStyleBoards} // using filteredStyleBoards instead of styleBoards for searching functionality
           keyExtractor={(item) => item.id}
           numColumns={2}
           contentContainerStyle={styles.styleBoardList}
@@ -1289,7 +1385,7 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     color: '#3dc8ff',
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: 'bold',
   },
   searchBar: {
