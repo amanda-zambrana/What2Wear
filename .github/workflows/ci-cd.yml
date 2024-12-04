@@ -11,46 +11,78 @@ on:
       - meghana
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04  # Explicitly set the Ubuntu version
+  build_backend:
+    runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      # Step to set up JDK 11 with distribution specified
-      - name: Set up JDK 11
-        uses: actions/setup-java@v2
+      # Step 2: Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
         with:
-          java-version: '11'
-          distribution: 'adoptopenjdk'  # Specify the distribution (adoptopenjdk, zulu, amazon-corretto, etc.)
+          distribution: 'temurin'
+          java-version: '17'
 
-      # Step to set Firebase credentials from the GitHub secret
-      - name: Set up Firebase credentials
-        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $GITHUB_ENV
-
-      # Cache Gradle dependencies
-      - name: Set up Gradle Cache
-        uses: actions/cache@v3  # Update to the latest version
+      # Step 3: Cache Maven dependencies
+      - name: Cache Maven packages
+        uses: actions/cache@v3
         with:
-          path: ~/.gradle/caches
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            gradle-${{ runner.os }}-
+            ${{ runner.os }}-maven-
 
-      # Install dependencies and run tests
-      - name: Install dependencies
+      # Step 4: Build and Test Backend with Debug Logging
+      - name: Build and Test Backend
         run: |
           cd backend
-          ./mvnw install
+          mvn clean install test -e -X
 
-      - name: Run tests
-        run: |
-          cd backend
-          ./mvnw test
+  build_frontend:
+    runs-on: ubuntu-latest
 
-      # Build and run the Spring Boot application
-      - name: Build and run the Spring Boot application
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Step 3: Cache npm dependencies
+      - name: Cache npm packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Step 4: Install dependencies for the frontend
+      - name: Install Frontend Dependencies
         run: |
-          cd backend
-          ./mvnw spring-boot:run
+          cd frontend
+          npm install
+
+      # Step 5: Install Expo CLI globally
+      - name: Install Expo CLI
+        run: |
+          npm install -g expo-cli
+
+      # Step 6: Start Expo in Web Mode to check for issues
+      - name: Start Expo in Web Mode
+        run: |
+          cd frontend
+          expo start --web --no-dev
+
+      # Optional Step 7: Run frontend tests if defined
+      - name: Run Expo Tests
+        run: |
+          cd frontend
+          npm test
