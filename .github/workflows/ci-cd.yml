@@ -4,13 +4,11 @@ on:
   push:
     branches:
       - main
-      - meghana  # Added meghana branch
-      - frontend-updated  # Added frontend-updated branch
+      - frontend-updated  # Updated branch name for frontend
   pull_request:
     branches:
       - main
-      - meghana  # Added meghana branch
-      - frontend-updated  # Added frontend-updated branch
+      - frontend-updated  # Updated branch name for frontend
 
 jobs:
   build_backend:
@@ -48,43 +46,44 @@ jobs:
 
     steps:
       # Step 1: Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
+        - name: Checkout code
+          uses: actions/checkout@v3
 
       # Step 2: Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
+        - name: Set up Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: '16'
 
       # Step 3: Cache npm dependencies
-      - name: Cache npm packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+        - name: Cache npm packages
+          uses: actions/cache@v3
+          with:
+            path: ~/.npm
+            key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
+            restore-keys: |
+              ${{ runner.os }}-node-
 
       # Step 4: Install dependencies for the frontend
-      - name: Install Frontend Dependencies
-        run: |
-          cd frontend
-          npm install
+        - name: Install Frontend Dependencies
+          run: |
+            cd frontend
+            npm install
 
       # Step 5: Install Expo CLI globally
-      - name: Install Expo CLI
-        run: |
-          npm install -g expo-cli
+        - name: Install Expo CLI
+          run: |
+            cd frontend
+            npm install -g expo-cli
 
-      # Step 6: Start Expo in Web Mode to check for issues
-      - name: Start Expo in Web Mode
-        run: |
-          cd frontend
-          expo start --web
+      # Step 6: Start Expo in Web Mode using npx (updated approach)
+        - name: Start Expo in Web Mode
+          run: |
+            cd frontend
+            npx expo start --web
 
       # Optional Step 7: Run frontend tests if defined
-      - name: Run Expo Tests
-        run: |
-          cd frontend
-          npm test
+        - name: Run Expo Tests
+          run: |
+            cd frontend
+            npm test
