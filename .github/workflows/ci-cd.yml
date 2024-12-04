@@ -35,11 +35,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Step 4: Build and Test Backend with Debug Logging
+      # Step 4: Set up Firebase credentials (if you're using Firebase)
+      - name: Set up Firebase credentials
+        run: echo "${{ secrets.FIREBASE_CREDENTIALS }}" > $HOME/firebase-service-account.json
+
+      # Step 5: Build and Test Backend with Debug Logging
       - name: Build and Test Backend
         run: |
           cd backend
           mvn clean install test -e -X
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/firebase-service-account.json
 
   build_frontend:
     runs-on: ubuntu-latest
