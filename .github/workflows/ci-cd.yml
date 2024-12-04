@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - meghana  # Added meghana branch
+      - frontend-updated  # Added frontend-updated branch
   pull_request:
     branches:
       - main
       - meghana  # Added meghana branch
+      - frontend-updated  # Added frontend-updated branch
 
 jobs:
   build_backend:
