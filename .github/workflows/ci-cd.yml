@@ -3,86 +3,38 @@ name: What2Wear CI/CD Pipeline
 on:
   push:
     branches:
-      - main
-      - meghana
-  pull_request:
-    branches:
-      - main
-      - meghana
+      - main  # This can be changed to the branch you're using for deployment
 
 jobs:
-  build_backend:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Step 2: Set up JDK 17
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      # Step 3: Cache Maven dependencies
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      # Step 4: Build and Test Backend with Debug Logging
-      - name: Build and Test Backend
-        run: |
-          cd backend
-          mvn clean install test -e -X
-
-  build_frontend:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Step 1: Checkout code
-      - name: Checkout code
+      # Step 1: Checkout the code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       # Step 2: Set up Node.js
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: 16  # Use the version your backend requires
 
-      # Step 3: Cache npm dependencies
-      - name: Cache npm packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+      # Step 3: Install dependencies
+      - name: Install Dependencies
+        run: npm install
 
-      # Step 4: Install dependencies for the frontend
-      - name: Install Frontend Dependencies
+      # Step 4: Add Firebase service account key
+      - name: Add Firebase Service Account Key
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          cd frontend
-          npm install
+          echo "$FIREBASE_SERVICE_ACCOUNT" > serviceAccountKey.json
 
-      # Step 5: Install Expo CLI globally
-      - name: Install Expo CLI
-        run: |
-          npm install -g expo-cli
+      # Step 5: Build the backend
+      - name: Build Backend
+        run: npm run build  # Replace with your actual build command
 
-      # Step 6: Start Expo in Web Mode to check for issues
-      - name: Start Expo in Web Mode
-        run: |
-          cd frontend
-          expo start --web --no-dev
-
-      # Optional Step 7: Run frontend tests if defined
-      - name: Run Expo Tests
-        run: |
-          cd frontend
-          npm test
+      # Step 6: Run tests (optional)
+      - name: Run Tests
+        run: npm test  # If you have tests, this will execute them
