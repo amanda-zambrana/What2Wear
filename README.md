@@ -14,6 +14,7 @@ Note: this structure will be extended as we develop more project components; thi
 ├── frontend            # All files for the frontend 
 └─├── app                 # Here is where the What2Wear app lies
     └─├── (tabs)/           # Contains the typeScript files for running the application
+      ├── auth              # Contains files for login/signup screens
       ├──services/          # API calls, data fetching logic
       ├── navigation/       # React navigation or any routing logic 
    ├── assets              # Static assets like images, fonts, etc. 
